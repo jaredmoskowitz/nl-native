@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <strong>Specify once. Build natively.</strong><br/>
+  <strong>NL Spec for native app development.</strong><br/>
   <em>Swift for iOS, Kotlin for Android, any backend.</em>
 </p>
 
