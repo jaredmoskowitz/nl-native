@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mid-Flight Steering Systems | NL Native</title>
+  <style>
+    :root {
+      --bg: #0e0e10;
+      --surface: #18181b;
+      --surface-2: #1e1e22;
+      --border: #2a2a2e;
+      --border-accent: #3a3a40;
+      --text: #e4e4e7;
+      --text-muted: #a1a1aa;
+      --text-dim: #71717a;
+      --accent: #818cf8;
+      --accent-dim: #6366f1;
+      --green: #4ade80;
+      --green-dim: #166534;
+      --red: #f87171;
+      --red-dim: #7f1d1d;
+      --amber: #fbbf24;
+      --amber-dim: #78350f;
+      --cyan: #22d3ee;
+      --purple: #c084fc;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .page {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 3rem 2rem 6rem;
+    }
+
+    /* Header */
+    .header {
+      margin-bottom: 3.5rem;
+      padding-bottom: 2rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .header .kicker {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.75rem;
+    }
+
+    .header h1 {
+      font-size: 2.25rem;
+      font-weight: 700;
+      line-height: 1.2;
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, var(--text) 0%, var(--text-muted) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .header .subtitle {
+      font-size: 1.05rem;
+      color: var(--text-muted);
+      max-width: 640px;
+      line-height: 1.7;
+    }
+
+    .header .context {
+      margin-top: 1.25rem;
+      padding: 1rem 1.25rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      line-height: 1.7;
+    }
+
+    .header .context strong {
+      color: var(--text);
+    }
+
+    /* System Cards */
+    .system {
+      margin-bottom: 3rem;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      background: var(--surface);
+    }
+
+    .system-header {
+      padding: 1.5rem 1.75rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+
+    .system-number {
+      flex-shrink: 0;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 700;
+      margin-top: 2px;
+    }
+
+    .system:nth-child(1) .system-number { background: #312e81; color: #a5b4fc; }
+    .system:nth-child(2) .system-number { background: var(--green-dim); color: var(--green); }
+    .system:nth-child(3) .system-number { background: var(--amber-dim); color: var(--amber); }
+    .system:nth-child(4) .system-number { background: #581c87; color: var(--purple); }
+    .system:nth-child(5) .system-number { background: #164e63; color: var(--cyan); }
+
+    .system-header-text h2 {
+      font-size: 1.25rem;
+      font-weight: 650;
+      margin-bottom: 0.25rem;
+    }
+
+    .system-header-text .source {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      font-style: italic;
+    }
+
+    .system-header-text .novel-badge {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border-radius: 4px;
+      background: #581c87;
+      color: var(--purple);
+      margin-left: 0.5rem;
+      vertical-align: middle;
+    }
+
+    .system-body {
+      padding: 1.5rem 1.75rem;
+    }
+
+    .system-body h3 {
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+      margin-top: 1.5rem;
+    }
+
+    .system-body h3:first-child {
+      margin-top: 0;
+    }
+
+    .system-body p {
+      font-size: 0.925rem;
+      color: var(--text-muted);
+      line-height: 1.75;
+      margin-bottom: 0.75rem;
+    }
+
+    .system-body p strong {
+      color: var(--text);
+    }
+
+    .system-body code {
+      font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', monospace;
+      font-size: 0.825rem;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      padding: 1px 6px;
+      border-radius: 4px;
+      color: var(--accent);
+    }
+
+    /* Trade-off Table */
+    .tradeoff-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 0.5rem;
+      font-size: 0.875rem;
+    }
+
+    .tradeoff-table th {
+      text-align: left;
+      padding: 0.625rem 1rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      border-bottom: 1px solid var(--border-accent);
+    }
+
+    .tradeoff-table th.pro-col {
+      color: var(--green);
+      width: 50%;
+    }
+
+    .tradeoff-table th.con-col {
+      color: var(--red);
+      width: 50%;
+    }
+
+    .tradeoff-table td {
+      padding: 0.6rem 1rem;
+      vertical-align: top;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .tradeoff-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .tradeoff-table td::before {
+      display: inline-block;
+      margin-right: 0.4rem;
+      font-weight: 600;
+    }
+
+    .tradeoff-table td.pro::before {
+      content: "+";
+      color: var(--green);
+    }
+
+    .tradeoff-table td.con::before {
+      content: "\2013";
+      color: var(--red);
+    }
+
+    /* Recommendation */
+    .recommendation {
+      margin-top: 3rem;
+      border: 1px solid var(--accent-dim);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .recommendation-header {
+      padding: 1.25rem 1.75rem;
+      background: rgba(99, 102, 241, 0.08);
+      border-bottom: 1px solid var(--accent-dim);
+    }
+
+    .recommendation-header h2 {
+      font-size: 1.15rem;
+      font-weight: 650;
+      color: var(--accent);
+    }
+
+    .recommendation-body {
+      padding: 1.5rem 1.75rem;
+    }
+
+    .recommendation-body p {
+      font-size: 0.925rem;
+      color: var(--text-muted);
+      line-height: 1.75;
+      margin-bottom: 0.75rem;
+    }
+
+    .recommendation-body p strong {
+      color: var(--text);
+    }
+
+    .layer-list {
+      list-style: none;
+      margin: 1rem 0;
+    }
+
+    .layer-list li {
+      position: relative;
+      padding: 0.75rem 1rem 0.75rem 2.5rem;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+      border-left: 2px solid var(--border);
+      margin-left: 0.75rem;
+    }
+
+    .layer-list li::before {
+      position: absolute;
+      left: -0.55rem;
+      top: 0.85rem;
+      width: 0.9rem;
+      height: 0.9rem;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.55rem;
+      font-weight: 700;
+      color: var(--bg);
+    }
+
+    .layer-list li:nth-child(1)::before { content: ""; background: var(--amber); }
+    .layer-list li:nth-child(2)::before { content: ""; background: var(--purple); }
+    .layer-list li:nth-child(3)::before { content: ""; background: var(--green); }
+    .layer-list li:nth-child(4)::before { content: ""; background: var(--cyan); }
+
+    .layer-list li:last-child {
+      border-left-color: transparent;
+    }
+
+    .layer-list li strong {
+      color: var(--text);
+    }
+
+    .layer-list li .role {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      margin-top: 0.15rem;
+    }
+
+    .footnote {
+      margin-top: 1.25rem;
+      padding: 1rem 1.25rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.825rem;
+      color: var(--text-dim);
+      line-height: 1.7;
+    }
+
+    /* Sources */
+    .sources {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .sources h3 {
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-dim);
+      margin-bottom: 1rem;
+    }
+
+    .sources ul {
+      list-style: none;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .sources li {
+      font-size: 0.775rem;
+      padding: 0.35rem 0.75rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-dim);
+    }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+      .page { padding: 2rem 1.25rem 4rem; }
+      .header h1 { font-size: 1.75rem; }
+      .system-body, .system-header { padding-left: 1.25rem; padding-right: 1.25rem; }
+      .tradeoff-table { font-size: 0.8rem; }
+      .tradeoff-table th, .tradeoff-table td { padding: 0.5rem 0.625rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+
+    <!-- Header -->
+    <header class="header">
+      <div class="kicker">NL Native Harness Design</div>
+      <h1>Mid-Flight Steering Systems</h1>
+      <p class="subtitle">
+        Five approaches for course-correcting platform agents during <code>/fan-out</code>
+        when the UI or implementation approach diverges from intent.
+      </p>
+      <div class="context">
+        <strong>The problem:</strong> Once <code>/fan-out</code> starts, specs are locked.
+        The only mid-implementation mechanism is contract version bumping, which only covers
+        architectural changes &mdash; not "I don't like how this looks" or "wrong approach."
+        If you disagree with the direction any of the three agents (iOS, Android, Backend) are taking,
+        you currently have to stop, update the spec, and re-run the full <code>/propose</code> cycle.
+      </div>
+    </header>
+
+    <!-- System 1 -->
+    <section class="system">
+      <div class="system-header">
+        <div class="system-number">1</div>
+        <div class="system-header-text">
+          <h2>Generator-Evaluator Loop</h2>
+          <span class="source">Source: Anthropic's harness design blog</span>
+        </div>
+      </div>
+      <div class="system-body">
+        <h3>How It Works</h3>
+        <p>
+          A dedicated <strong>Evaluator agent</strong> runs alongside each platform agent during
+          <code>/fan-out</code>. After every N tasks, the Evaluator boots the app, takes screenshots,
+          navigates key flows via automation (Playwright / Simulator MCP), and scores output against
+          the interaction spec. It returns structured feedback &mdash;
+          <em>"navigation hierarchy is 3 levels deep, spec says 2"</em> &mdash;
+          and the platform agent course-corrects or pivots.
+        </p>
+        <h3>Adapted to NL Native</h3>
+        <p>
+          The QA Verifier role expands from post-hoc to <strong>continuous</strong>. It runs after every
+          2&ndash;3 tasks per platform, comparing screenshots and behavior against the interaction spec.
+          If scores trend down, the platform agent gets feedback before digging deeper into a bad direction.
+          You see the Evaluator's reports and can inject your own feedback at the same surface.
+        </p>
+        <p>
+          Anthropic's key finding: tuning a standalone evaluator to be skeptical is
+          <em>"far more tractable than making a generator critical of its own work."</em>
+        </p>
+        <h3>Trade-offs</h3>
+        <table class="tradeoff-table">
+          <thead>
+            <tr><th class="pro-col">Pro</th><th class="con-col">Con</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="pro">Catches drift early, before it compounds</td>
+              <td class="con">Doubles token cost per feature (evaluator runs constantly)</td>
+            </tr>
+            <tr>
+              <td class="pro">Keeps human out of the loop for obvious spec violations &mdash; only escalates ambiguity</td>
+              <td class="con">Evaluator needs testable criteria &mdash; vague interaction specs produce vague evaluations</td>
+            </tr>
+            <tr>
+              <td class="pro">You can review evaluator scores async and only intervene when something looks off</td>
+              <td class="con">Adds latency &mdash; each eval cycle pauses implementation</td>
+            </tr>
+            <tr>
+              <td class="pro">Proven at Anthropic: separate evaluation from generation</td>
+              <td class="con">Doesn't help with "I don't like this but can't articulate why" &mdash; only catches spec deviations</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- System 2 -->
+    <section class="system">
+      <div class="system-header">
+        <div class="system-number">2</div>
+        <div class="system-header-text">
+          <h2>Checkpoint + Revert-and-Refine</h2>
+          <span class="source">Source: Cursor plan mode, LangGraph time-travel</span>
+        </div>
+      </div>
+      <div class="system-body">
+        <h3>How It Works</h3>
+        <p>
+          Platform agents save <strong>named checkpoints</strong> at milestone boundaries (after
+          completing navigation, data layer, primary screen, etc.). Each checkpoint includes a git tag,
+          screenshot, and summary of decisions made. When you don't like the direction, you
+          <strong>revert to a checkpoint</strong> and provide a refined prompt &mdash; not a patch on top
+          of bad work, but a clean restart from the last good state with better instructions.
+        </p>
+        <h3>Adapted to NL Native</h3>
+        <p>
+          <code>/fan-out</code> inserts checkpoint gates into each platform's task list. After milestone
+          groups (tasks 1&ndash;3, 4&ndash;6, 7&ndash;9), the agent commits, screenshots, and pauses.
+          You review via <code>/status</code> which now shows checkpoint previews. If you dislike the
+          direction: revert, update the interaction spec, resume.
+        </p>
+        <p>
+          The key Cursor insight: <em>"A clean restart with a refined plan almost always outperforms
+          patching in-progress work."</em>
+        </p>
+        <h3>Trade-offs</h3>
+        <table class="tradeoff-table">
+          <thead>
+            <tr><th class="pro-col">Pro</th><th class="con-col">Con</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="pro">Clean &mdash; no accumulated context pollution from failed directions</td>
+              <td class="con">Throws away work. Reverting to checkpoint 2 of 5 means re-doing 60% of implementation</td>
+            </tr>
+            <tr>
+              <td class="pro">Simple mental model &mdash; it's just git + spec amendment</td>
+              <td class="con">Doesn't help you articulate <em>what</em> you want differently, only lets you reject what you don't</td>
+            </tr>
+            <tr>
+              <td class="pro">Both platforms checkpoint independently &mdash; revert iOS but keep Android</td>
+              <td class="con">Checkpoint granularity is a design problem. Too few = big reverts. Too many = approval fatigue</td>
+            </tr>
+            <tr>
+              <td class="pro">Cursor's data shows this produces higher quality than iterative correction</td>
+              <td class="con">Requires the refined spec to be better &mdash; if you can't articulate the fix, same problem recurs</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- System 3 -->
+    <section class="system">
+      <div class="system-header">
+        <div class="system-number">3</div>
+        <div class="system-header-text">
+          <h2>Mid-Flight Spec Amendment</h2>
+          <span class="source">Source: Contract versioning (existing) + Aider architect/editor separation</span>
+        </div>
+      </div>
+      <div class="system-body">
+        <h3>How It Works</h3>
+        <p>
+          Instead of re-running the full 7-gate <code>/propose</code> cycle, you issue a
+          <strong>scoped spec amendment</strong> &mdash; like a diff against the current interaction spec.
+          The Architect evaluates <strong>blast radius</strong>: which platform tasks are affected?
+          Only affected tasks get re-planned. Unaffected completed work stays. The Architect bumps
+          the relevant contract version, and platform agents halt, re-read, and resume &mdash;
+          using the mechanism that already exists.
+        </p>
+        <h3>Adapted to NL Native</h3>
+        <p>
+          A new <code>/amend</code> command. You say
+          <code>/amend note-creation "use a bottom sheet instead of a full-screen modal"</code>.
+          The UX Designer produces an interaction spec delta. The Architect determines if this is a
+          contract-level change or implementation-level, bumps versions if needed, and calculates which
+          tasks on each platform are impacted. Platform agents invalidate only those tasks and re-execute
+          from the amendment point.
+        </p>
+        <h3>Trade-offs</h3>
+        <table class="tradeoff-table">
+          <thead>
+            <tr><th class="pro-col">Pro</th><th class="con-col">Con</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="pro">Builds on existing contract versioning &mdash; extends, not replaces</td>
+              <td class="con">Blast radius calculation is hard. "Change the nav pattern" might touch every task</td>
+            </tr>
+            <tr>
+              <td class="pro">Preserves completed work that isn't affected by the change</td>
+              <td class="con">Requires precise amendments &mdash; vague feedback ("make it feel lighter") doesn't decompose well</td>
+            </tr>
+            <tr>
+              <td class="pro">Feels natural &mdash; it's how real spec-driven teams work (change orders)</td>
+              <td class="con">Adds state complexity &mdash; tasks now have: completed, invalidated, pending-re-execution</td>
+            </tr>
+            <tr>
+              <td class="pro">Keeps the spec as source of truth &mdash; the amendment <em>is</em> the feedback</td>
+              <td class="con">UX Designer re-enters mid-implementation, needs a defined handoff protocol</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- System 4 -->
+    <section class="system">
+      <div class="system-header">
+        <div class="system-number">4</div>
+        <div class="system-header-text">
+          <h2>Diverge-and-Select</h2>
+          <span class="source">Source: Original &mdash; extends best-of-N with human selection</span>
+          <span class="novel-badge">Novel</span>
+        </div>
+      </div>
+      <div class="system-body">
+        <h3>How It Works</h3>
+        <p>
+          When you flag dissatisfaction, each platform agent generates <strong>2&ndash;3 alternative
+          approaches</strong> for the specific area of concern &mdash; not full reimplementations, but
+          focused alternatives for the contentious piece (e.g., three navigation patterns, three creation
+          flows). Each alternative gets a screenshot, a 2-sentence rationale, and a trade-off note.
+          You pick one. Your selection becomes a <strong>binding constraint</strong> added to the
+          interaction spec, and implementation continues from that choice.
+        </p>
+        <h3>Why This Is Different</h3>
+        <p>
+          Most steering mechanisms require you to <em>describe</em> what you want. This inverts it &mdash;
+          the agents <em>show</em> you options, and you <em>choose</em>. This solves the
+          <strong>"I don't like it but can't articulate why"</strong> problem, which is the most common
+          form of UI dissatisfaction. <strong>Selection is cognitively cheaper than description.</strong>
+        </p>
+        <h3>Adapted to NL Native</h3>
+        <p>
+          A <code>/diverge</code> command. You say <code>/diverge ios "the note list feels wrong"</code>.
+          The iOS Expert generates 3 alternatives for the note list, each as a minimal working implementation
+          with a screenshot. You pick option B. That choice is recorded as a constraint:
+          <em>"note list uses compact card layout with swipe actions per user selection during diverge-and-select."</em>
+          If the concern applies to both platforms, <code>/diverge all</code> runs it on both.
+        </p>
+        <h3>Trade-offs</h3>
+        <table class="tradeoff-table">
+          <thead>
+            <tr><th class="pro-col">Pro</th><th class="con-col">Con</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="pro">Solves the hardest problem: user knows something is wrong but can't specify the fix</td>
+              <td class="con">3x implementation cost for the diverged area (alternatives get thrown away)</td>
+            </tr>
+            <tr>
+              <td class="pro">Selection is faster than specification &mdash; react instead of prescribe</td>
+              <td class="con">Quality depends on agent's design taste, which may be limited</td>
+            </tr>
+            <tr>
+              <td class="pro">Creates durable constraints with clear provenance</td>
+              <td class="con">Risk of choice paralysis if alternatives are too similar or too different</td>
+            </tr>
+            <tr>
+              <td class="pro">No existing harness does this &mdash; unique competitive advantage</td>
+              <td class="con">Only works for UI/UX concerns. Architectural disagreements need a different mechanism</td>
+            </tr>
+            <tr>
+              <td class="pro">Preserves no-lateral-comms rule &mdash; platforms diverge independently</td>
+              <td class="con">Screenshots require a build step per alternative, adding time</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- System 5 -->
+    <section class="system">
+      <div class="system-header">
+        <div class="system-number">5</div>
+        <div class="system-header-text">
+          <h2>Feedforward Harness Evolution</h2>
+          <span class="source">Source: Martin Fowler / Thoughtworks "Harness Engineering"</span>
+        </div>
+      </div>
+      <div class="system-body">
+        <h3>How It Works</h3>
+        <p>
+          Instead of correcting the current implementation, you improve the
+          <strong>system of constraints</strong> so the problem doesn't recur. When you see something
+          you don't like, you add a rule to the platform's <code>AGENTS.md</code> or interaction spec
+          templates &mdash; not a fix to this feature, but a permanent guide for all future features.
+          The current feature gets rebuilt with the improved harness.
+        </p>
+        <h3>Adapted to NL Native</h3>
+        <p>
+          Your dissatisfaction becomes a new convention. <em>"I don't like how dense the list views
+          are"</em> becomes a rule in <code>platforms/ios/AGENTS.md</code>:
+          <strong>"List views shall use minimum 56pt row height with 16pt vertical padding between
+          content groups."</strong> Next time <code>/fan-out</code> runs &mdash; including a re-run
+          of the current feature &mdash; that rule is in the feedforward context. Over time, your harness
+          accumulates your design taste as codified constraints.
+        </p>
+        <h3>Trade-offs</h3>
+        <table class="tradeoff-table">
+          <thead>
+            <tr><th class="pro-col">Pro</th><th class="con-col">Con</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="pro">Compounds over time &mdash; every correction makes all future features better</td>
+              <td class="con">Doesn't fix the current problem quickly &mdash; still need to re-run <code>/fan-out</code></td>
+            </tr>
+            <tr>
+              <td class="pro">Turns subjective preferences into durable, testable rules</td>
+              <td class="con">Hard to codify aesthetic preferences. "Make it feel premium" doesn't decompose into rules</td>
+            </tr>
+            <tr>
+              <td class="pro">Harness improvements are version-controlled and reviewable</td>
+              <td class="con">Risk of rule bloat &mdash; too many constraints make agents brittle</td>
+            </tr>
+            <tr>
+              <td class="pro">Custom constraints act as "positive prompt injection" per Anthropic's research</td>
+              <td class="con">Requires abstracting from specific complaint to general rule</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Recommendation -->
+    <section class="recommendation">
+      <div class="recommendation-header">
+        <h2>Recommended Layering</h2>
+      </div>
+      <div class="recommendation-body">
+        <p>
+          These systems aren't mutually exclusive. The most robust approach layers them,
+          with each covering a different failure mode:
+        </p>
+        <ul class="layer-list">
+          <li>
+            <strong>System 3 &mdash; <code>/amend</code></strong> as the primary mechanism.
+            Extends what already exists in the harness.
+            <span class="role">For when you know what you want changed.</span>
+          </li>
+          <li>
+            <strong>System 4 &mdash; <code>/diverge</code></strong> for inarticulate dissatisfaction.
+            Fills a gap no other harness has solved.
+            <span class="role">For when you know something's wrong but can't say why.</span>
+          </li>
+          <li>
+            <strong>System 2 &mdash; Checkpoints</strong> as the safety net.
+            Cheap to add, clean revert when all else fails.
+            <span class="role">For when the direction is fundamentally wrong.</span>
+          </li>
+          <li>
+            <strong>System 5 &mdash; Harness evolution</strong> as the long game.
+            Every correction becomes a permanent improvement.
+            <span class="role">For building up your design taste over time.</span>
+          </li>
+        </ul>
+        <div class="footnote">
+          <strong>System 1 (Evaluator Loop)</strong> is powerful but expensive and better suited
+          for unattended runs. Less useful when you're actively watching implementation &mdash;
+          consider adding it later for overnight or batch feature builds.
+        </div>
+      </div>
+    </section>
+
+    <!-- Sources -->
+    <section class="sources">
+      <h3>Research Sources</h3>
+      <ul>
+        <li>Anthropic &mdash; Harness Design for Long-Running Apps</li>
+        <li>Anthropic &mdash; Building Effective AI Agents</li>
+        <li>Anthropic &mdash; Measuring Agent Autonomy in Practice</li>
+        <li>Anthropic &mdash; Multi-Agent Research System</li>
+        <li>Anthropic &mdash; Building a C Compiler with Parallel Claudes</li>
+        <li>Anthropic &mdash; Context Engineering for AI Agents</li>
+        <li>Cursor &mdash; Plan Mode &amp; Agent Best Practices</li>
+        <li>Cursor &mdash; Long-Running Agents &amp; Checkpointing</li>
+        <li>Cursor &mdash; Scaling Agents (Planner-Worker)</li>
+        <li>Cursor &mdash; Real-Time RL for Composer</li>
+        <li>LangGraph &mdash; Human-in-the-Loop &amp; Time-Travel</li>
+        <li>Martin Fowler &mdash; Harness Engineering</li>
+        <li>Aider &mdash; Architect Mode</li>
+        <li>Microsoft &mdash; Magentic-UI Co-Planning</li>
+        <li>Devin / Cognition Labs &mdash; Playbooks</li>
+        <li>Windsurf &mdash; Cascade Checkpointing</li>
+      </ul>
+    </section>
+
+  </div>
+</body>
+</html>
