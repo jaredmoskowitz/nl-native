@@ -148,6 +148,10 @@ The harness is platform-count-agnostic. Add a `web-expert.md` or `rn-expert.md` 
 **Is this code mine?**
 The output is standard native code. Engineers can read, modify, and own it. The harness accelerates implementation. It doesn't lock you in.
 
+## Acknowledgements
+
+NL Native's spec-driven workflow builds on ideas from [OpenSpec](https://github.com/Fission-AI/OpenSpec) by Fission AI, a lightweight specification framework for AI-driven development. OpenSpec established the pattern of agreeing on what to build before any code is written, with artifact-guided workflows and slash commands. NL Native extends this with platform-specific agents, contract versioning, mid-flight steering, and cross-platform verification.
+
 ## Contributing
 
 PRs welcome for agent profiles, AGENTS.md templates, schema improvements, worked examples, and ports to other agent tools (Cursor, Windsurf).
