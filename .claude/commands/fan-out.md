@@ -237,4 +237,6 @@ When all three task lists (iOS, Android, Backend) are fully checked off:
 3. Note which platform agents are still using mock data layers (if backend completed after platforms, note that mocks can now be swapped for real implementations)
 4. Tell the user: "Implementation complete. Run `/verify` to validate."
 
-**Partial completion:** If iOS and Android finish before Backend, those platforms are functional with mock data. Report progress and continue — platform agents do not need to wait for Backend to complete their task lists. The mock→real swap happens during verification.
+**Partial completion:** If iOS and Android finish before Backend, those platforms are functional with mock data. Report progress and continue — platform agents do not need to wait for Backend to complete their task lists.
+
+**Auto-connect:** When all backend tasks are complete AND at least one mobile platform's tasks are also complete, automatically run `/connect` to wire the mock data layers to the real backend. If a second mobile platform completes after `/connect` has already run, run `/connect` again for that platform only.

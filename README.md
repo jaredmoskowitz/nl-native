@@ -1,8 +1,6 @@
 <p align="center">
-  <img src="logo.svg" width="200" alt="NL Native logo" />
+  <img src="logo.svg" width="512" alt="NL Native logo" />
 </p>
-
-<h1 align="center">NL Native</h1>
 
 <p align="center"><strong>Specify once. Build natively — Swift for iOS, Kotlin for Android, any backend.</strong></p>
 

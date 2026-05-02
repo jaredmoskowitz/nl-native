@@ -41,18 +41,7 @@
     </filter>
   </defs>
 
-  <!-- Background -->
-  <rect width="512" height="512" rx="80" fill="url(#bg)"/>
-
-  <!-- Subtle grid texture -->
-  <g opacity="0.04" stroke="#818cf8" stroke-width="0.5">
-    <line x1="0" y1="128" x2="512" y2="128"/>
-    <line x1="0" y1="256" x2="512" y2="256"/>
-    <line x1="0" y1="384" x2="512" y2="384"/>
-    <line x1="128" y1="0" x2="128" y2="512"/>
-    <line x1="256" y1="0" x2="256" y2="512"/>
-    <line x1="384" y1="0" x2="384" y2="512"/>
-  </g>
+  <!-- No background — transparent -->
 
   <!-- Spec document (top center) -->
   <g filter="url(#glow)">

@@ -13,11 +13,14 @@ NL Native is a **development harness** — not a framework or library. It orches
 The development lifecycle is a strict sequence:
 
 1. `/propose <feature-name>` — 7-step gate sequence: plain English → EARS spec → API contracts + data models → interaction spec → platform constraints → UX reconciliation → gate review → human approval. **No code is written until the human approves.**
-2. `/fan-out` — Launches parallel iOS, Android, and Backend implementation agents. Each writes an implementation spec, a task list with contract version dependencies and checkpoints, then implements task-by-task. iOS and Android use mock data layers during fan-out so they don't block on the backend.
+2. `/fan-out` — Launches parallel iOS, Android, and Backend implementation agents. Each writes an implementation spec, a task list with contract version dependencies and checkpoints, then implements task-by-task. iOS and Android use mock data layers during fan-out so they don't block on the backend. Auto-triggers `/connect` when backend completes.
 3. `/steer <feedback>` — Mid-flight course correction. Auto-detects mode: **amend** (specific feedback → spec delta → blast radius → surgical re-execution) or **diverge** (vague dissatisfaction → generate alternatives → user picks → binding constraint). Can revert to checkpoints if needed.
-4. `/verify` — Two-phase verification. Phase A: per-platform spec compliance (all three platforms in parallel). Phase B: cross-platform coherence + integration verification (only runs if Phase A passes with no BLOCKERs).
-5. `/archive` — Merges delta specs into `specs/core/` baseline, extracts reusable UX patterns, moves change to `specs/changes/archive/`, commits.
-6. `/status` — Dashboard showing active change phase, spec completion, task progress, contract alignment, verification state, and next step.
+4. `/preview` — Builds the app, boots the simulator/emulator, walks through interaction spec states, captures screenshots. See what was built before verifying. Pairs with `/steer`.
+5. `/connect` — Wires mock data layers to the real backend. Smoke-tests all endpoints, generates real API client implementations, verifies the mock→real swap. **Auto-triggered** from `/fan-out` when backend completes; can also run manually.
+6. `/verify` — Two-phase verification. Phase A: per-platform spec compliance (all three platforms in parallel). Phase B: cross-platform coherence + integration verification (only runs if Phase A passes with no BLOCKERs).
+7. `/archive` — Merges delta specs into `specs/core/` baseline, extracts reusable UX patterns, learns from steers, moves change to `specs/changes/archive/`, commits.
+8. `/adopt <path>` — Reverse-engineers NL Native specs from an existing codebase. Extracts feature specs, API contracts, data models, and interaction specs so you can bring an existing app into the harness.
+9. `/status` — Dashboard showing active change phase, spec completion, task progress, checkpoints, steers, contract alignment, verification state, and next step.
 
 ## Agent Roles
 
