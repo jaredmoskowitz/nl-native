@@ -16,9 +16,9 @@
 
 ---
 
-NL Native is a development harness for [Claude Code](https://claude.ai/code). You describe features in plain English. Seven AI agents turn them into native iOS, Android, and backend code, verified against the spec.
+React Native and Flutter use a shared codebase. NL Native uses a shared natural language.
 
-No cross-platform runtime. No shared code. The spec is the product. Code is output.
+You describe features in plain English. Seven AI agents turn them into native iOS, Android, and backend code, verified against the spec. Built for [Claude Code](https://claude.ai/code).
 
 ## Quick Start
 
