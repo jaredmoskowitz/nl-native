@@ -16,7 +16,7 @@
 
 ---
 
-React Native and Flutter use a shared codebase. NL Native uses a shared natural language.
+React Native and Flutter use a shared codebase. NL Native uses a shared natural language base.
 
 You describe features in plain English. Seven AI agents turn them into native iOS, Android, and backend code, verified against the spec. Built for [Claude Code](https://claude.ai/code).
 
