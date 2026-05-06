@@ -15,7 +15,8 @@ specs/changes/<feature-name>/
 │       ├── features/
 │       ├── api-contracts/
 │       ├── data-models/
-│       └── interactions/
+│       ├── interactions/
+│       └── design-system/
 ├── constraints/
 │   ├── ios.md
 │   └── android.md
@@ -42,7 +43,7 @@ Present the feature spec to the user and ask for feedback. Revise until the user
 
 ---
 
-## Step 3 — Architect and UX Designer work in parallel
+## Step 3 — Architect, UX Designer, and Visual Designer work in parallel
 
 ### Architect (read `agents/architect.md`)
 
@@ -57,7 +58,14 @@ All endpoints must be fully specified including all error responses. All data mo
 Produce:
 - `specs/changes/<feature-name>/specs/core/interactions/<feature-name>.md` — using `schemas/interaction-spec.md`
 
-All states must be defined. All state transitions must be explicit. All error presentations must be specified.
+All states must be defined. All state transitions must be explicit. All error presentations must be specified. Do not specify colors, sizes, or spacing values — use behavioral descriptions and let the Visual Designer map them to exact tokens.
+
+### Visual Designer (read `agents/visual-designer.md`)
+
+Produce:
+- `specs/changes/<feature-name>/specs/core/design-system/<feature-name>.md` — using `schemas/design-system.md`
+
+If the human provided a design doc, extract visual tokens from it. If no design doc exists, propose a visual identity and get human approval before producing the spec. All tokens must be exact values (hex codes, point sizes, milliseconds). Assign version 1.0.0 to new design systems.
 
 ---
 
@@ -65,8 +73,8 @@ All states must be defined. All state transitions must be explicit. All error pr
 
 Read `agents/ios-expert.md` and `agents/android-expert.md`. For each platform:
 
-1. Read the feature spec, API contract, data model, and interaction spec
-2. Identify any constraints — requirements that cannot be implemented as specified on this platform
+1. Read the feature spec, API contract, data model, interaction spec, and design system spec
+2. Identify any constraints — requirements that cannot be implemented as specified on this platform, including visual constraints (e.g., Material Dynamic Color overriding specified surface colors)
 3. Produce the constraint report using `schemas/platform-constraint.md`:
    - `specs/changes/<feature-name>/constraints/ios.md`
    - `specs/changes/<feature-name>/constraints/android.md`
@@ -75,7 +83,9 @@ If there are no constraints, write "No constraints identified." in the file.
 
 ---
 
-## Step 5 — UX reconciliation
+## Step 5 — UX and Visual reconciliation
+
+### UX Reconciliation
 
 Read `agents/ux-designer.md`. Review both constraint reports.
 
@@ -84,6 +94,16 @@ For each constraint that affects user experience:
 - Update the interaction spec if needed
 
 Produce: `specs/changes/<feature-name>/ux-reconciliation.md`
+
+### Visual Reconciliation
+
+Read `agents/visual-designer.md`. Review both constraint reports.
+
+For each constraint that affects visual design (e.g., platform theming overrides, icon limitations, typography restrictions):
+- State your ruling: accept the platform alternative, require the exact spec value, or escalate to the human
+- Update the design system spec if needed
+
+Append visual reconciliation rulings to `specs/changes/<feature-name>/ux-reconciliation.md` under a `## Visual Reconciliation` section.
 
 Format:
 ```markdown

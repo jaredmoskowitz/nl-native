@@ -35,7 +35,8 @@ Load the following files into context before spawning any agent:
 - `$CHANGE/specs/core/api-contracts/*.md` — API contracts (note versions)
 - `$CHANGE/specs/core/data-models/*.md` — data models (note versions)
 - `$CHANGE/specs/core/interactions/*.md` — interaction specs
-- `$CHANGE/ux-reconciliation.md` — platform-specific behavioral rulings
+- `$CHANGE/specs/core/design-system/*.md` — design system tokens (colors, spacing, typography, components, animation)
+- `$CHANGE/ux-reconciliation.md` — platform-specific behavioral and visual rulings
 - `$CHANGE/constraints/ios.md` — iOS constraints (already reconciled)
 - `$CHANGE/constraints/android.md` — Android constraints (already reconciled)
 - `$CHANGE/constraints/backend.md` — backend constraints (already reconciled, if filed)
@@ -54,6 +55,9 @@ Before writing any code, produce `$CHANGE/specs/ios/implementation.md`:
 - Define data fetching strategy (how API responses map to local models)
 - Define the mock API client protocols and fixture data (derived from API contract response shapes)
 - Note any platform-specific behaviors from the constraint reconciliation
+- Map design system tokens to SwiftUI: colors as `Color(hex:)` extensions, spacing as constants, typography as `.font()` modifiers
+
+**Design system compliance:** All colors, spacing, typography, corner radii, elevation, and animation parameters must match the design system spec. You choose the native API (SwiftUI), the native icon set (SF Symbols), and the native typeface (SF Pro) — but the values (hex codes, point sizes, durations, spring parameters) come from the design system. Deviations require a constraint report filed before implementation.
 
 **Step 2 — Write the iOS task list**
 
@@ -133,6 +137,9 @@ Before writing any code, produce `$CHANGE/specs/android/implementation.md`:
 - Define data fetching strategy (how API responses map to local models and Room entities)
 - Define the mock API client interfaces and fixture data (derived from API contract response shapes)
 - Note any platform-specific behaviors from the constraint reconciliation
+- Map design system tokens to Compose: colors as `Color(0xFF...)` constants, spacing as dp constants, typography as `MaterialTheme.typography` extensions
+
+**Design system compliance:** All colors, spacing, typography, corner radii, elevation, and animation parameters must match the design system spec. You choose the native API (Jetpack Compose), the native icon set (Material Icons), and the native typeface (system default) — but the values (hex codes, dp sizes, durations, spring parameters) come from the design system. Deviations require a constraint report filed before implementation.
 
 **Step 2 — Write the Android task list**
 

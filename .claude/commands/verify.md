@@ -142,6 +142,22 @@ For each API client protocol/interface on the mobile platforms:
 - If the real implementation connects to the backend, verify it produces the same results as the mock for the fixture data scenarios
 - If the real implementation is not yet wired up, flag as WARNING (not BLOCKER) — the mock layer is functional
 
+**6. Visual consistency (design system compliance)**
+
+For each token in the design system spec (`specs/core/design-system/*.md`):
+- Compare the iOS implementation's value against the spec
+- Compare the Android implementation's value against the spec
+- Confirm both platforms use the same hex colors for action palettes
+- Confirm spacing, corner radii, and typography scale match
+- Confirm animation parameters (spring damping, durations, thresholds) match
+- Flag any platform that deviates without a filed and reconciled constraint
+
+| Token | Spec Value | iOS Value | Android Value | Match? |
+|---|---|---|---|---|
+| [token-name] | [spec value] | [iOS value] | [Android value] | ✓ or FINDING |
+
+Visual mismatches without a filed constraint are BLOCKER findings routed to the relevant platform expert.
+
 **6. Experiential equivalence**
 
 For each user-facing scenario in the feature spec:
