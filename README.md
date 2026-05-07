@@ -108,12 +108,6 @@ Two modes, auto-detected from your input:
 
 Checkpoints (committed at milestones during fan-out) give you clean revert points. If a steer would invalidate most completed work, the harness offers to revert to a checkpoint instead.
 
-## Mock → Real
-
-iOS builds a Swift protocol per API client. Android builds a Kotlin interface. Both get mock conformances with fixture data derived from the API contract.
-
-When the backend finishes, `/connect` runs automatically: smoke-tests every endpoint, generates real implementations, verifies the swap produces identical results. Zero changes to views or view models.
-
 ## Harness evolution
 
 At `/archive` time, the harness reviews your steer log. If you kept correcting the same kind of thing (list rows too dense, wrong navigation pattern), it proposes a permanent rule for your AGENTS.md files. You approve or reject each rule.
