@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Workflows &amp; NL Native — A Field Notebook</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,900;1,9..144,500&family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --ink:        #14110d;
+    --ink-2:      #1c1814;
+    --panel:      #211c16;
+    --panel-edge: #38301f;
+    --paper:      #f0e6d2;
+    --paper-dim:  #b9ac93;
+    --paper-faint:#7b715c;
+    --amber:      #e8a33d;   /* iOS */
+    --teal:       #46b7a8;   /* barrier / sync */
+    --rose:       #d76a64;   /* Backend / blocker */
+    --violet:     #9a8cd0;   /* Android */
+    --line:       rgba(240,230,210,0.10);
+    --glow-amber: rgba(232,163,61,0.35);
+    --glow-teal:  rgba(70,183,168,0.35);
+    --mono: "IBM Plex Mono", ui-monospace, monospace;
+    --serif:"Spectral", Georgia, serif;
+    --disp: "Fraunces", Georgia, serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background:
+      radial-gradient(1200px 700px at 78% -8%, rgba(232,163,61,0.10), transparent 60%),
+      radial-gradient(900px 600px at 5% 18%, rgba(70,183,168,0.07), transparent 55%),
+      var(--ink);
+    color: var(--paper);
+    font-family: var(--serif);
+    font-size: 18px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  /* paper grain */
+  body::before {
+    content:""; position: fixed; inset: 0; pointer-events: none; z-index: 1;
+    opacity: 0.045;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 28px; position: relative; z-index: 2; }
+
+  /* ---------- type ---------- */
+  h1,h2,h3 { font-family: var(--disp); font-weight: 900; line-height: 1.02; letter-spacing: -0.02em; }
+  .mono { font-family: var(--mono); }
+  .eyebrow {
+    font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.42em;
+    text-transform: uppercase; color: var(--amber); font-weight: 500;
+  }
+
+  /* ---------- hero ---------- */
+  header.hero {
+    min-height: 92vh; display: flex; flex-direction: column; justify-content: center;
+    padding: 120px 0 80px; position: relative;
+  }
+  .hero .kicker { margin-bottom: 26px; }
+  .hero h1 {
+    font-size: clamp(3.2rem, 9vw, 8rem);
+    background: linear-gradient(176deg, var(--paper) 30%, var(--amber) 130%);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .hero h1 em { font-style: italic; font-weight: 500; }
+  .hero .sub {
+    margin-top: 30px; max-width: 660px; font-size: clamp(1.05rem, 2vw, 1.4rem);
+    color: var(--paper-dim);
+  }
+  .hero .sub b { color: var(--paper); font-weight: 600; }
+  .scrolldot {
+    position: absolute; bottom: 36px; left: 0; font-family: var(--mono);
+    font-size: 0.72rem; letter-spacing: 0.3em; color: var(--paper-faint);
+    text-transform: uppercase; animation: bob 2.4s ease-in-out infinite;
+  }
+  @keyframes bob { 0%,100%{transform:translateY(0);opacity:.5} 50%{transform:translateY(6px);opacity:1} }
+
+  /* ---------- definition split ---------- */
+  .def-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+    border: 1px solid var(--panel-edge); border-radius: 14px; overflow: hidden;
+    margin: 10px 0 30px;
+  }
+  .def-cell { padding: 38px 34px; background: var(--panel); }
+  .def-cell:first-child { border-right: 1px solid var(--panel-edge); }
+  .def-cell h3 { font-size: 1.9rem; margin-bottom: 4px; }
+  .def-cell .tag { font-family: var(--mono); font-size:.72rem; letter-spacing:.2em; text-transform:uppercase; }
+  .def-cell.wf .tag { color: var(--teal); }
+  .def-cell.ag .tag { color: var(--amber); }
+  .def-cell p { color: var(--paper-dim); margin-top: 14px; font-size: 1rem; }
+
+  section { padding: 80px 0; border-top: 1px solid var(--line); }
+  .sec-head { margin-bottom: 44px; }
+  .sec-head h2 { font-size: clamp(2rem, 5vw, 3.4rem); margin-top: 14px; }
+  .sec-head .lead { color: var(--paper-dim); max-width: 720px; margin-top: 18px; font-size: 1.12rem; }
+
+  /* ---------- pattern cards ---------- */
+  .patterns { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px,1fr)); gap: 18px; }
+  .pcard {
+    background: linear-gradient(180deg, var(--panel), var(--ink-2));
+    border: 1px solid var(--panel-edge); border-radius: 12px; padding: 26px 24px;
+    position: relative; transition: transform .35s cubic-bezier(.2,.8,.2,1), border-color .35s;
+  }
+  .pcard:hover { transform: translateY(-5px); border-color: var(--amber); }
+  .pcard .num { font-family: var(--mono); font-size: .8rem; color: var(--amber); letter-spacing: .15em; }
+  .pcard h3 { font-size: 1.32rem; margin: 8px 0 12px; }
+  .pcard p { color: var(--paper-dim); font-size: .96rem; }
+  .pcard .when { display:block; margin-top: 14px; font-family: var(--mono); font-size:.78rem; color: var(--paper-faint); line-height:1.5; }
+  .pcard .glyph { position:absolute; top:22px; right:22px; opacity:.5; }
+  .pcard:nth-child(4){ border-left: 2px solid var(--teal); }
+  .pcard:nth-child(5){ border-left: 2px solid var(--teal); }
+  .pcard .agentish { display:inline-block; margin-top:14px; font-family:var(--mono); font-size:.68rem; letter-spacing:.12em; text-transform:uppercase; color:var(--teal); }
+
+  /* ---------- NL native scorecard ---------- */
+  .score { display:grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 760px){ .score{ grid-template-columns:1fr; } }
+  .srow {
+    display:flex; align-items:flex-start; gap:16px; padding: 20px 22px;
+    background: var(--panel); border:1px solid var(--panel-edge); border-radius: 10px;
+  }
+  .srow .check { font-family:var(--mono); font-weight:600; font-size:1.1rem; flex-shrink:0;
+    width:30px; height:30px; display:grid; place-items:center; border-radius:7px; }
+  .srow.yes .check { background: rgba(70,183,168,.16); color: var(--teal); border:1px solid rgba(70,183,168,.4); }
+  .srow.partial .check { background: rgba(232,163,61,.16); color: var(--amber); border:1px solid rgba(232,163,61,.4); }
+  .srow b { font-family: var(--disp); font-size:1.05rem; }
+  .srow .cmd { font-family:var(--mono); color: var(--amber); font-size:.85rem; }
+  .srow p { color: var(--paper-dim); font-size:.92rem; margin-top:3px; }
+  .verdict {
+    margin-top:26px; padding:24px 26px; border-radius:12px; font-family:var(--disp);
+    font-size:1.3rem; line-height:1.4;
+    background: linear-gradient(100deg, rgba(70,183,168,.12), rgba(232,163,61,.08));
+    border:1px solid var(--panel-edge);
+  }
+  .verdict b{ color: var(--teal); }
+
+  /* ---------- lessons ---------- */
+  .lesson { display:grid; grid-template-columns: 64px 1fr; gap: 26px; padding: 34px 0; border-bottom:1px dashed var(--line); }
+  .lesson:last-child{ border-bottom:none; }
+  .lesson .ln { font-family: var(--disp); font-size: 3rem; font-weight:900; color: var(--panel-edge); line-height:1; }
+  .lesson h3 { font-size: 1.6rem; margin-bottom: 12px; }
+  .lesson h3 .k { color: var(--amber); }
+  .lesson p { color: var(--paper-dim); margin-bottom: 10px; }
+  .lesson .flag {
+    display:inline-block; margin-top:8px; padding:5px 12px; border-radius: 20px;
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.08em; text-transform:uppercase;
+  }
+  .flag.trap { background: rgba(215,106,100,.14); color: var(--rose); border:1px solid rgba(215,106,100,.4); }
+  .flag.win  { background: rgba(70,183,168,.14); color: var(--teal); border:1px solid rgba(70,183,168,.4); }
+  code.inl { font-family:var(--mono); font-size:.86em; background: var(--ink-2); padding:1px 7px; border-radius:5px; color: var(--paper); border:1px solid var(--panel-edge); }
+
+  /* ============ THE DIAGRAM ============ */
+  .diagram-wrap { background: var(--ink-2); border:1px solid var(--panel-edge); border-radius:16px; padding: 30px; }
+  .toggle-row { display:flex; align-items:center; gap:18px; flex-wrap:wrap; margin-bottom: 28px; }
+  .seg {
+    display:inline-flex; background: var(--ink); border:1px solid var(--panel-edge); border-radius: 30px; padding:5px; gap:4px;
+  }
+  .seg button {
+    font-family:var(--mono); font-size:.8rem; letter-spacing:.04em; cursor:pointer;
+    padding:10px 20px; border-radius:24px; border:none; background:transparent; color:var(--paper-dim);
+    transition: all .3s;
+  }
+  .seg button.active { color: var(--ink); font-weight:600; }
+  .seg button[data-mode="continuous"].active { background: var(--rose); }
+  .seg button[data-mode="barrier"].active { background: var(--teal); }
+  .replay {
+    margin-left:auto; font-family:var(--mono); font-size:.78rem; cursor:pointer; color:var(--paper-dim);
+    background:transparent; border:1px solid var(--panel-edge); padding:9px 16px; border-radius:8px; transition:.25s;
+  }
+  .replay:hover { border-color:var(--amber); color:var(--amber); }
+
+  .mode-title { font-family:var(--disp); font-size:1.5rem; margin-bottom:4px; }
+  .mode-sub { color:var(--paper-dim); font-size:.95rem; margin-bottom:24px; font-family:var(--mono); }
+  .mode-title .pill { font-family:var(--mono); font-size:.7rem; padding:3px 10px; border-radius:14px; vertical-align:middle; margin-left:10px; letter-spacing:.05em; }
+  .pill.bad { background:rgba(215,106,100,.16); color:var(--rose); }
+  .pill.good{ background:rgba(70,183,168,.16); color:var(--teal); }
+
+  /* lanes shared */
+  .stage { position:relative; }
+  .lane-label { font-family:var(--mono); font-size:.78rem; letter-spacing:.05em; width:78px; flex-shrink:0; }
+  .lane-label.ios{color:var(--amber)} .lane-label.and{color:var(--violet)} .lane-label.bak{color:var(--rose)}
+  .lane-label.arc{color:var(--teal)}
+
+  /* CONTINUOUS view */
+  #view-continuous { display:none; }
+  .ctx-box {
+    border:1.5px dashed var(--rose); border-radius:12px; padding:22px 20px 26px; position:relative;
+    background: repeating-linear-gradient(45deg, rgba(215,106,100,.04) 0 14px, transparent 14px 28px);
+  }
+  .ctx-box .ctx-tag {
+    position:absolute; top:-11px; left:18px; background:var(--ink-2); padding:0 10px;
+    font-family:var(--mono); font-size:.72rem; color:var(--rose); letter-spacing:.1em;
+  }
+  .ctx-lane { display:flex; align-items:center; gap:14px; margin:14px 0; }
+  .bar { height:26px; border-radius:6px; position:relative; overflow:hidden; flex:1; background: rgba(255,255,255,.04); }
+  .bar .fill { position:absolute; inset:0; width:0; border-radius:6px; }
+  .running .ctx-lane .fill { animation: grow 3.2s linear forwards; }
+  .ios-fill{ background: linear-gradient(90deg,var(--amber),#caa15a); }
+  .and-fill{ background: linear-gradient(90deg,var(--violet),#7d6fc0); }
+  .bak-fill{ background: linear-gradient(90deg,var(--rose),#b65750); }
+  @keyframes grow { from{width:0} to{width:100%} }
+
+  /* contamination web */
+  .contam { position:absolute; left:92px; right:20px; top:54px; bottom:46px; pointer-events:none; }
+  .contam line { stroke: var(--rose); stroke-width:1; stroke-dasharray:4 4; opacity:0; }
+  .running .contam line { animation: bleed .6s ease forwards; }
+  .running .contam line:nth-child(1){ animation-delay:1.0s }
+  .running .contam line:nth-child(2){ animation-delay:1.6s }
+  .running .contam line:nth-child(3){ animation-delay:2.2s }
+  @keyframes bleed { to{ opacity:.7 } }
+  .bolt { position:absolute; top:8px; font-family:var(--mono); font-size:.72rem; color:var(--amber); opacity:0; }
+  .running .bolt { animation: flash 2.6s ease forwards; }
+  @keyframes flash { 0%,55%{opacity:0;transform:translateY(-4px)} 60%{opacity:1} 75%{opacity:1} 100%{opacity:.85;transform:translateY(0)} }
+  .ctx-foot { margin-top:18px; font-family:var(--mono); font-size:.82rem; color:var(--rose); display:flex; gap:8px; align-items:flex-start; opacity:0; }
+  .running .ctx-foot { animation: bleed .5s ease forwards; animation-delay:2.8s; }
+
+  /* BARRIER view */
+  #view-barrier { display:none; }
+  .grid-stage { display:grid; grid-template-columns: 78px repeat(5, 1fr); gap:0 8px; align-items:center; }
+  .col-head { font-family:var(--mono); font-size:.7rem; text-align:center; color:var(--paper-faint); letter-spacing:.06em; padding-bottom:12px; text-transform:uppercase; }
+  .col-head.bar-h { color:var(--teal); }
+  .work {
+    height:30px; border-radius:6px; margin:7px 0; position:relative; overflow:hidden;
+    background: rgba(255,255,255,.04); border:1px solid var(--line);
+  }
+  .work .wfill { position:absolute; inset:0; width:0; border-radius:5px; opacity:.9; }
+  .barrier-col {
+    grid-row: 1 / span 5; position:relative; align-self:stretch; display:flex; justify-content:center;
+  }
+  .barrier-col .rail { width:3px; background: linear-gradient(var(--teal),transparent); opacity:.25; height:100%; border-radius:2px; }
+  .arc-node {
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%) scale(.6);
+    width:46px; height:46px; border-radius:50%; background:var(--ink-2); border:2px solid var(--teal);
+    display:grid; place-items:center; font-family:var(--mono); font-size:.62rem; color:var(--teal); text-align:center;
+    opacity:0; box-shadow:0 0 0 0 var(--glow-teal);
+  }
+  .freeze-tag { position:absolute; bottom:-2px; left:50%; transform:translateX(-50%); white-space:nowrap;
+    font-family:var(--mono); font-size:.6rem; color:var(--teal); opacity:0; }
+
+  /* barrier animation sequencing */
+  .b-running .m1 .wfill { animation: grow 1.0s ease forwards .2s; }
+  .b-running .arc1 { animation: pop .5s cubic-bezier(.2,1.4,.4,1) forwards 1.25s; }
+  .b-running .freeze1 { animation: bleed .4s forwards 1.6s; }
+  .b-running .m2 .wfill { animation: grow 1.0s ease forwards 1.9s; }
+  .b-running .arc2 { animation: pop .5s cubic-bezier(.2,1.4,.4,1) forwards 2.95s; }
+  .b-running .freeze2 { animation: bleed .4s forwards 3.3s; }
+  .b-running .m3 .wfill { animation: grow 1.0s ease forwards 3.6s; }
+  .b-running .doneflag { animation: pop .5s cubic-bezier(.2,1.4,.4,1) forwards 4.7s; }
+  @keyframes pop { from{opacity:0; transform:translate(-50%,-50%) scale(.6)} to{opacity:1; transform:translate(-50%,-50%) scale(1)} }
+
+  .ios-wfill{ background: linear-gradient(90deg,var(--amber),#caa15a); }
+  .and-wfill{ background: linear-gradient(90deg,var(--violet),#7d6fc0); }
+  .bak-wfill{ background: linear-gradient(90deg,var(--rose),#b65750); }
+  .lane-row { display:contents; }
+  .row-label { font-family:var(--mono); font-size:.74rem; align-self:center; }
+
+  .legend { display:flex; gap:22px; flex-wrap:wrap; margin-top:26px; font-family:var(--mono); font-size:.78rem; color:var(--paper-dim); }
+  .legend span { display:inline-flex; align-items:center; gap:7px; }
+  .dot { width:11px; height:11px; border-radius:3px; display:inline-block; }
+
+  /* inside-the-barrier steps */
+  .steps { counter-reset: step; display:grid; gap:14px; margin-top:10px; }
+  .step { display:grid; grid-template-columns: 44px 1fr; gap:18px; align-items:start;
+    background:var(--panel); border:1px solid var(--panel-edge); border-radius:10px; padding:20px 22px; }
+  .step::before { counter-increment: step; content: counter(step); font-family:var(--disp); font-weight:900;
+    font-size:1.5rem; color:var(--teal); }
+  .step b { font-family:var(--disp); font-size:1.1rem; }
+  .step p { color:var(--paper-dim); font-size:.95rem; margin-top:4px; }
+
+  /* code block */
+  pre.code {
+    background:#0e0c09; border:1px solid var(--panel-edge); border-radius:12px; padding:24px 26px;
+    overflow-x:auto; font-family:var(--mono); font-size:.85rem; line-height:1.7; color:#d8cdb6;
+    box-shadow: inset 0 0 60px rgba(0,0,0,.4);
+  }
+  pre.code .c { color: var(--paper-faint); font-style:italic; }
+  pre.code .k { color: var(--amber); }
+  pre.code .t { color: var(--teal); }
+  pre.code .s { color: #c7a8d8; }
+
+  /* trade-off + decisions */
+  .tradeoff { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media(max-width:760px){ .tradeoff{grid-template-columns:1fr} }
+  .to-card { padding:26px; border-radius:12px; border:1px solid var(--panel-edge); background:var(--panel); }
+  .to-card.gain { border-top:3px solid var(--teal); }
+  .to-card.lose { border-top:3px solid var(--rose); }
+  .to-card h4 { font-family:var(--disp); font-size:1.2rem; margin-bottom:12px; }
+  .to-card li { list-style:none; color:var(--paper-dim); padding:6px 0 6px 22px; position:relative; font-size:.96rem; }
+  .to-card.gain li::before{ content:"+"; position:absolute; left:0; color:var(--teal); font-family:var(--mono); }
+  .to-card.lose li::before{ content:"\2212"; position:absolute; left:0; color:var(--rose); font-family:var(--mono); }
+
+  .decisions { display:grid; gap:16px; margin-top:10px; counter-reset: d; }
+  .dec { background: linear-gradient(120deg, var(--panel), var(--ink-2)); border:1px solid var(--panel-edge);
+    border-radius:12px; padding:24px 26px; position:relative; }
+  .dec::before { counter-increment:d; content:"DECISION " counter(d); font-family:var(--mono); font-size:.68rem;
+    letter-spacing:.2em; color:var(--amber); }
+  .dec h4 { font-family:var(--disp); font-size:1.25rem; margin:8px 0 8px; }
+  .dec p { color:var(--paper-dim); font-size:.96rem; }
+  .dec .opts { margin-top:12px; display:flex; gap:10px; flex-wrap:wrap; }
+  .dec .opt { font-family:var(--mono); font-size:.78rem; padding:7px 13px; border-radius:8px; background:var(--ink);
+    border:1px solid var(--panel-edge); color:var(--paper-dim); }
+
+  footer { padding: 70px 0 90px; border-top:1px solid var(--line); color:var(--paper-faint); font-family:var(--mono); font-size:.82rem; }
+  footer b { color: var(--amber); }
+
+  ::selection { background: var(--amber); color: var(--ink); }
+  @media (max-width:680px){
+    .def-grid{grid-template-columns:1fr}
+    .def-cell:first-child{border-right:none;border-bottom:1px solid var(--panel-edge)}
+    .grid-stage{ font-size:.6rem; }
+    .lesson{grid-template-columns:1fr; gap:8px}
+    .lesson .ln{font-size:2rem}
+  }
+
+  /* ---- L3 verify loop ---- */
+  .loopflow { position:relative; padding:36px 16px; background:var(--ink-2); border:1px solid var(--panel-edge); border-radius:16px; margin-bottom:30px; }
+  .loop-row { display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:4px; }
+  .lnode { background:var(--panel); border:1px solid var(--panel-edge); border-radius:10px; padding:13px 15px; font-family:var(--mono); font-size:.78rem; text-align:center; min-width:98px; }
+  .lnode small { display:block; color:var(--paper-faint); font-size:.64rem; margin-top:4px; font-weight:400; }
+  .larrow { color:var(--paper-faint); font-family:var(--mono); font-size:1.05rem; padding:0 6px; }
+  .ldiamond { background:var(--panel); border:1.5px solid var(--teal); color:var(--teal); border-radius:10px; padding:13px 15px; font-family:var(--mono); font-size:.76rem; text-align:center; min-width:98px; }
+  .lnode.seq, .ldiamond.seq { animation: lpulse 5s ease-in-out infinite; }
+  @keyframes lpulse { 0%,18%,100%{ box-shadow:0 0 0 0 transparent; transform:scale(1);} 4%{ box-shadow:0 0 22px var(--glow-amber); transform:scale(1.05);} 12%{ box-shadow:0 0 0 0 transparent; transform:scale(1);} }
+  .loop-exits { display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin-top:28px; font-family:var(--mono); font-size:.76rem; }
+  .lexit { padding:8px 15px; border-radius:22px; border:1px solid var(--panel-edge); background:var(--ink); }
+  .lexit.ok   { color:var(--teal); border-color:rgba(70,183,168,.4); }
+  .lexit.loop { color:var(--amber); border-color:rgba(232,163,61,.4); }
+  .lexit.esc  { color:var(--rose); border-color:rgba(215,106,100,.4); }
+
+  .fclass { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media(max-width:760px){ .fclass{grid-template-columns:1fr} }
+  .fcard { padding:24px 26px; border-radius:12px; border:1px solid var(--panel-edge); background:var(--panel); }
+  .fcard.auto{ border-top:3px solid var(--teal); }
+  .fcard.esc { border-top:3px solid var(--amber); }
+  .fcard h4 { font-family:var(--disp); font-size:1.18rem; margin-bottom:8px; }
+  .fcard p { color:var(--paper-dim); font-size:.94rem; }
+  .fcard .ex { font-family:var(--mono); font-size:.76rem; color:var(--paper-faint); margin-top:12px; display:block; line-height:1.6; }
+
+  .diff { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  @media(max-width:760px){ .diff{grid-template-columns:1fr} }
+  .diff .col { border:1px solid var(--panel-edge); border-radius:10px; padding:20px 22px; font-size:.92rem; }
+  .diff .was { background:rgba(215,106,100,.06); border-color:rgba(215,106,100,.3); }
+  .diff .now { background:rgba(70,183,168,.06); border-color:rgba(70,183,168,.3); }
+  .diff h5 { font-family:var(--mono); font-size:.7rem; letter-spacing:.15em; text-transform:uppercase; margin-bottom:12px; }
+  .diff .was h5{ color:var(--rose); } .diff .now h5{ color:var(--teal); }
+  .diff .col p { color:var(--paper-dim); margin:7px 0; }
+  .diff .col b { color:var(--paper); }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="kicker eyebrow">Field Notebook · NL Native × Anthropic Workflows</div>
+    <h1>Workflows,<br/><em>made real.</em></h1>
+    <p class="sub">
+      Anthropic draws one line: a <b>workflow</b> orchestrates models through code paths
+      <i>you</i> design; an <b>agent</b> directs itself. NL Native is already a workflow —
+      it just needs two of its own patterns turned from <b>promise</b> into <b>mechanism</b>.
+    </p>
+    <div class="scrolldot">scroll ↓</div>
+  </div>
+</header>
+
+<!-- DEFINITION -->
+<section style="border-top:none; padding-top:20px;">
+  <div class="wrap">
+    <div class="def-grid">
+      <div class="def-cell wf">
+        <span class="tag">predefined</span>
+        <h3>Workflow</h3>
+        <p>LLMs and tools orchestrated through <b style="color:var(--paper)">predefined code paths</b>. You decide the steps; the model fills the thinking. Predictable, repeatable, cheap to debug.</p>
+      </div>
+      <div class="def-cell ag">
+        <span class="tag">emergent</span>
+        <h3>Agent</h3>
+        <p>The model <b style="color:var(--paper)">directs its own process</b> — choosing tools and order dynamically. Flexible, but harder to predict and more expensive to run.</p>
+      </div>
+    </div>
+    <p style="color:var(--paper-dim); font-family:var(--mono); font-size:.86rem;">
+      → The article's one rule: <span style="color:var(--amber)">start simple.</span> Reach for a workflow when the task has structure you already understand.
+    </p>
+  </div>
+</section>
+
+<!-- FIVE PATTERNS -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">The vocabulary</div>
+      <h2>Five workflow patterns</h2>
+      <p class="lead">From a fixed line, to a fork, to a fan-out, to dynamic delegation, to a feedback loop. The last two start blending toward agent territory.</p>
+    </div>
+    <div class="patterns">
+      <div class="pcard">
+        <div class="num">01</div><h3>Prompt chaining</h3>
+        <p>Fixed sequential steps; each step eats the previous output.</p>
+        <span class="when">USE WHEN → task decomposes cleanly; trade latency for accuracy.</span>
+      </div>
+      <div class="pcard">
+        <div class="num">02</div><h3>Routing</h3>
+        <p>Classify the input, then send it to a specialised handler.</p>
+        <span class="when">USE WHEN → distinct categories handled better apart.</span>
+      </div>
+      <div class="pcard">
+        <div class="num">03</div><h3>Parallelization</h3>
+        <p>Run calls at once — sectioning (split) or voting (repeat &amp; compare).</p>
+        <span class="when">USE WHEN → pieces are independent, or you want multiple takes.</span>
+      </div>
+      <div class="pcard">
+        <div class="num">04</div><h3>Orchestrator&ndash;workers</h3>
+        <p>A central model breaks the task apart <i>on the fly</i> and delegates.</p>
+        <span class="when">USE WHEN → subtasks can't be known up front.</span>
+        <span class="agentish">↗ leans agentic</span>
+      </div>
+      <div class="pcard">
+        <div class="num">05</div><h3>Evaluator&ndash;optimizer</h3>
+        <p>One model generates, another critiques, loop until good.</p>
+        <span class="when">USE WHEN → clear criteria exist; refinement measurably helps.</span>
+        <span class="agentish">↗ leans agentic</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- NL NATIVE SCORECARD -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">The surprise</div>
+      <h2>You already built four of five</h2>
+      <p class="lead">NL Native didn't read the patterns — it reinvented them. Here's the map.</p>
+    </div>
+    <div class="score">
+      <div class="srow yes"><div class="check">✓</div><div><b>Prompt chaining</b> &nbsp;<span class="cmd">/propose</span><p>English → EARS spec → contracts → interaction spec → approval gate.</p></div></div>
+      <div class="srow yes"><div class="check">✓</div><div><b>Parallelization</b> &nbsp;<span class="cmd">/fan-out</span><p>iOS · Android · Backend built at once — <i>in principle</i>.</p></div></div>
+      <div class="srow yes"><div class="check">✓</div><div><b>Orchestrator</b> &nbsp;<span class="cmd">Architect</span><p>All cross-cutting decisions route through one hub.</p></div></div>
+      <div class="srow yes"><div class="check">✓</div><div><b>Evaluator (loop across features)</b> &nbsp;<span class="cmd">/archive</span><p>Steer log → permanent AGENTS.md rules. Each feature tunes the next.</p></div></div>
+      <div class="srow partial"><div class="check">~</div><div><b>Evaluator&ndash;optimizer (within a feature)</b> &nbsp;<span class="cmd">/verify</span><p>An evaluator — but it only <i>reports</i>. The loop never closes. (Lesson 3.)</p></div></div>
+      <div class="srow partial"><div class="check">~</div><div><b>Routing</b><p>The gate (<span class="cmd">/prep</span> refuses without research) is a routing instinct.</p></div></div>
+    </div>
+    <div class="verdict">
+      NL Native doesn't need patterns <i>bolted on</i>. It needs two existing patterns
+      <b>made real</b>: enforce the isolation it already promises, and close the verify loop it already half-built.
+    </div>
+  </div>
+</section>
+
+<!-- THREE LESSONS -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">What to learn</div>
+      <h2>Three lessons</h2>
+    </div>
+
+    <div class="lesson">
+      <div class="ln">1</div>
+      <div>
+        <h3>Your parallelism is <span class="k">asserted, not enforced</span></h3>
+        <p><code class="inl">fan-out.md</code> <i>says</i> "launch agents simultaneously." But it's prose one Claude reads top-to-bottom — no <code class="inl">Task</code> tool, no subagent spawn. One context role-plays all three roles in sequence.</p>
+        <p>The danger isn't speed. Your whole hub-and-spoke topology rests on <i>"platform agents never communicate."</i> When one context becomes iOS, then Android, it already <b>holds every iOS decision</b> the moment it "becomes" Android. The exact contamination the design exists to prevent is structurally guaranteed.</p>
+        <span class="flag trap">sectioning only pays off if sections are truly isolated</span>
+      </div>
+    </div>
+
+    <div class="lesson">
+      <div class="ln">2</div>
+      <div>
+        <h3>...but <span class="k">don't</span> just port it to <code class="inl">parallel()</code></h3>
+        <p>The obvious fix — spawn three real subagents — kills your cleverest feature. <b>Contract-version monitoring</b> (<code class="inl">fan-out.md:119</code>) needs a live agent to halt mid-task, re-read a bumped contract, and resume. Isolated subagents can't be tapped on the shoulder mid-run.</p>
+        <p>So the irony: the "fake" serial parallelism is <i>exactly</i> what makes mid-flight contract sync possible. Going truly parallel forces a redesign — barrier-synced milestones, where the Architect re-syncs <i>between</i> rounds instead of continuously. <b>That tension is the real design conversation.</b></p>
+        <span class="flag trap">the constraint that makes it hard &amp; interesting</span>
+      </div>
+    </div>
+
+    <div class="lesson">
+      <div class="ln">3</div>
+      <div>
+        <h3><code class="inl">/verify</code> is an evaluator, not an <span class="k">evaluator-optimizer</span></h3>
+        <p>QA Verifier "reports findings only — never fixes," and BLOCKERs just halt. That's half the pattern. Close the loop: <span class="mono" style="color:var(--teal)">verify → route each finding to the owning platform agent → fix → re-verify → until clean.</span> QA still never fixes; it just <i>triggers</i> the owner.</p>
+        <span class="flag win">clean win — clear criteria already exist</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ THE INTERACTIVE DIAGRAM ============ -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">The centerpiece · Lesson 1 + 2</div>
+      <h2>Continuous vs. barrier-synced</h2>
+      <p class="lead">The same fan-out, two ways. Flip the toggle and watch what isolation actually buys you.</p>
+    </div>
+
+    <div class="diagram-wrap" id="diagram">
+      <div class="toggle-row">
+        <div class="seg">
+          <button data-mode="continuous">Continuous (today)</button>
+          <button data-mode="barrier" class="active">Barrier-synced</button>
+        </div>
+        <button class="replay" id="replay">↻ replay</button>
+      </div>
+
+      <!-- CONTINUOUS -->
+      <div id="view-continuous">
+        <div class="mode-title">One shared context <span class="pill bad">contaminated</span></div>
+        <div class="mode-sub">// roles run in sequence — but all decisions stay in context</div>
+        <div class="stage">
+          <div class="ctx-box">
+            <span class="ctx-tag">SHARED CONTEXT WINDOW</span>
+            <div class="bolt" style="right:18px;">⚡ contract bump — anytime</div>
+            <div class="ctx-lane"><span class="lane-label ios">iOS</span><div class="bar"><div class="fill ios-fill"></div></div></div>
+            <div class="ctx-lane"><span class="lane-label and">Android</span><div class="bar"><div class="fill and-fill"></div></div></div>
+            <div class="ctx-lane"><span class="lane-label bak">Backend</span><div class="bar"><div class="fill bak-fill"></div></div></div>
+            <svg class="contam" preserveAspectRatio="none">
+              <line x1="0" y1="13"  x2="100%" y2="50%"></line>
+              <line x1="0" y1="50%" x2="100%" y2="87%"></line>
+              <line x1="100%" y1="13" x2="0" y2="87%"></line>
+            </svg>
+            <div class="ctx-foot">✗ Android can "see" every iOS decision. Isolation is a promise in markdown — not a property of the system.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BARRIER -->
+      <div id="view-barrier">
+        <div class="mode-title">Isolated lanes, synced at the gate <span class="pill good">enforced</span></div>
+        <div class="mode-sub">// each milestone runs against a frozen contract — reconcile happens only at the barrier</div>
+        <div class="grid-stage" id="bgrid">
+          <div></div>
+          <div class="col-head">Milestone 1<br/>data layer</div>
+          <div class="col-head bar-h">↯ barrier</div>
+          <div class="col-head">Milestone 2<br/>primary screens</div>
+          <div class="col-head bar-h">barrier</div>
+          <div class="col-head">Milestone 3<br/>polish</div>
+
+          <!-- iOS row -->
+          <div class="row-label lane-label ios">iOS</div>
+          <div class="work m1"><div class="wfill ios-wfill"></div></div>
+          <div></div>
+          <div class="work m2"><div class="wfill ios-wfill"></div></div>
+          <div></div>
+          <div class="work m3"><div class="wfill ios-wfill"></div></div>
+
+          <!-- Android row -->
+          <div class="row-label lane-label and">Android</div>
+          <div class="work m1"><div class="wfill and-wfill"></div></div>
+          <div></div>
+          <div class="work m2"><div class="wfill and-wfill"></div></div>
+          <div></div>
+          <div class="work m3"><div class="wfill and-wfill"></div></div>
+
+          <!-- Backend row -->
+          <div class="row-label lane-label bak">Backend</div>
+          <div class="work m1"><div class="wfill bak-wfill"></div></div>
+          <div></div>
+          <div class="work m2"><div class="wfill bak-wfill"></div></div>
+          <div></div>
+          <div class="work m3"><div class="wfill bak-wfill"></div></div>
+
+          <!-- barrier overlays positioned in the grid via columns 3 and 5 -->
+          <div class="barrier-col" style="grid-column:3;">
+            <div class="rail"></div>
+            <div class="arc-node arc1">ARCH<br/>sync</div>
+            <div class="freeze-tag freeze1">freeze v1</div>
+          </div>
+          <div class="barrier-col" style="grid-column:5;">
+            <div class="rail"></div>
+            <div class="arc-node arc2">ARCH<br/>sync</div>
+            <div class="freeze-tag freeze2">freeze v1.1</div>
+          </div>
+          <div class="barrier-col" style="grid-column:6; justify-content:flex-end;">
+            <div class="arc-node doneflag" style="border-color:var(--amber); color:var(--amber); right:-8px; left:auto; transform:translate(0,-50%) scale(.6);">✓<br/>done</div>
+          </div>
+        </div>
+
+        <div class="legend">
+          <span><i class="dot" style="background:var(--amber)"></i> iOS — isolated worktree</span>
+          <span><i class="dot" style="background:var(--violet)"></i> Android — isolated worktree</span>
+          <span><i class="dot" style="background:var(--rose)"></i> Backend — isolated worktree</span>
+          <span><i class="dot" style="background:var(--teal)"></i> Architect reconcile = the only shared channel</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- INSIDE A BARRIER -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">Zoom in</div>
+      <h2>Inside one barrier</h2>
+      <p class="lead">When all three finish a milestone, they pause. Only the Architect runs the reconcile.</p>
+    </div>
+    <div class="steps">
+      <div class="step"><div><b>Collect</b><p>Each platform reports what it built + any constraint reports or contract gaps it discovered (e.g. "iOS needs a <code class="inl">createdAt</code> the contract doesn't define").</p></div></div>
+      <div class="step"><div><b>Decide</b><p>The Architect — and only the Architect — decides whether to bump any contract. This is now the <i>one</i> place a version changes. Deterministic, not "whenever."</p></div></div>
+      <div class="step"><div><b>Freeze</b><p>The new contract version is frozen for the entire next milestone. No agent has to watch for mid-flight bumps anymore.</p></div></div>
+      <div class="step"><div><b>Release</b><p>Each platform gets a fresh context seeded with exactly two things: the frozen contract <i>and its own prior output</i> — never the other platforms' internals. The contract becomes the only channel. That's your hub-and-spoke diagram, finally enforced.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- CODE SHAPE -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">Concretely</div>
+      <h2>The shape in the Workflow tool</h2>
+      <p class="lead">Not <code class="inl">pipeline()</code> — pipeline has no barrier between stages, and we need one. It's <code class="inl">parallel()</code> per milestone with an Architect reconcile between rounds.</p>
+    </div>
+<pre class="code"><span class="c">let</span> contract = frozenInitialContract              <span class="c">// from gate-review</span>
+<span class="c">let</span> priorOutput = { ios: null, android: null, backend: null }
+
+<span class="k">for</span> (<span class="c">const</span> milestone <span class="k">of</span> [<span class="s">'data-layer'</span>, <span class="s">'primary-screens'</span>, <span class="s">'polish'</span>]) {
+
+  <span class="c">// ── BARRIER: three lanes, isolated worktrees, frozen contract ──</span>
+  <span class="c">const</span> built = <span class="k">await</span> <span class="t">parallel</span>([
+    () => <span class="t">agent</span>(iosPrompt(milestone, contract, priorOutput.ios),     { isolation: <span class="s">'worktree'</span>, schema: PLATFORM_OUT }),
+    () => <span class="t">agent</span>(androidPrompt(milestone, contract, priorOutput.android),{ isolation: <span class="s">'worktree'</span>, schema: PLATFORM_OUT }),
+    () => <span class="t">agent</span>(backendPrompt(milestone, contract, priorOutput.backend),{ isolation: <span class="s">'worktree'</span>, schema: PLATFORM_OUT }),
+  ])
+
+  <span class="c">// ── the ONLY place contracts change ──</span>
+  <span class="c">const</span> reconcile = <span class="k">await</span> <span class="t">agent</span>(architectPrompt(built, contract), { schema: RECONCILE_OUT })
+  contract    = reconcile.frozenContract              <span class="c">// bump happens here, or not</span>
+  priorOutput = { ios: built[0], android: built[1], backend: built[2] }
+
+  <span class="k">if</span> (reconcile.blockers.length) { <span class="c">/* surface to human gate */</span> }
+}</pre>
+    <p style="color:var(--paper-dim); font-size:.95rem; margin-top:18px;">
+      This is the textbook <i>legitimate barrier</i>: the next milestone needs cross-platform context — all three reports — before the Architect can freeze. <code class="inl">worktree</code> isolation lets three agents write <code class="inl">platforms/&#123;ios,android,backend&#125;</code> at once without collision.
+    </p>
+  </div>
+</section>
+
+<!-- TRADE-OFF -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">Honest accounting</div>
+      <h2>The trade-off</h2>
+    </div>
+    <div class="tradeoff">
+      <div class="to-card gain">
+        <h4>You gain</h4>
+        <ul>
+          <li>Real isolation — the guarantee becomes <i>true</i></li>
+          <li>Determinism — contracts change at known points</li>
+          <li>Genuine wall-clock parallelism</li>
+        </ul>
+      </div>
+      <div class="to-card lose">
+        <h4>You lose</h4>
+        <ul>
+          <li>Instant reaction to a contract gap</li>
+          <li>A gap found early waits up to one milestone to resolve</li>
+        </ul>
+      </div>
+    </div>
+    <p style="color:var(--paper); font-family:var(--disp); font-size:1.25rem; margin-top:24px; line-height:1.4;">
+      For coherence-critical work, that trade is correct. Drift is the expensive failure;
+      a milestone of latency is cheap.
+    </p>
+  </div>
+</section>
+
+<!-- OPEN DECISIONS -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">Your call</div>
+      <h2>Three decisions to settle</h2>
+      <p class="lead">These are the genuinely open ones before this becomes real.</p>
+    </div>
+    <div class="decisions">
+      <div class="dec">
+        <h4>Milestone alignment</h4>
+        <p>Checkpoints differ per platform (iOS has <code class="inl">primary-screens</code>; backend has <code class="inl">schema/endpoints/auth</code>). Do all three align to shared barrier milestones, or define their own and barrier on count (1st, 2nd, 3rd)?</p>
+        <div class="opts"><span class="opt">A · shared milestones</span><span class="opt">B · barrier on count</span></div>
+      </div>
+      <div class="dec">
+        <h4>Hard-blocker handling</h4>
+        <p>If iOS hits a wall mid-milestone that truly stops it, does it idle until the barrier — or trigger an <i>early</i> barrier that pulls everyone to reconcile now?</p>
+        <div class="opts"><span class="opt">A · idle to barrier</span><span class="opt">B · early barrier</span></div>
+      </div>
+      <div class="dec">
+        <h4>What crosses back</h4>
+        <p>To each agent in the next round: just "your own output + frozen contract"? Or also a digest of <i>resolved</i> cross-platform decisions — a little context bleed for better coherence?</p>
+        <div class="opts"><span class="opt">A · strict isolation</span><span class="opt">B · resolved digest</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ LESSON 3 — THE VERIFY LOOP ============ -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">Building it · the safe win</div>
+      <h2>Closing the verify loop</h2>
+      <p class="lead">QA still never fixes. It reports, the orchestration routes, the owning expert fixes, QA re-verifies. The loop closes <i>around</i> QA — never inside it. (And <code class="inl">qa-verifier.md:104</code> already permits routing "by the human or orchestration layer.")</p>
+    </div>
+
+    <div class="loopflow">
+      <div class="loop-row">
+        <div class="lnode seq" style="animation-delay:0s">Phase A verify<small>parallel, per platform</small></div>
+        <span class="larrow">→</span>
+        <div class="lnode seq" style="animation-delay:1s">Route to owner<small>finding names it</small></div>
+        <span class="larrow">→</span>
+        <div class="lnode seq" style="animation-delay:2s">Expert fixes<small>in its worktree</small></div>
+        <span class="larrow">→</span>
+        <div class="lnode seq" style="animation-delay:3s">QA re-verify<small>that finding only</small></div>
+        <span class="larrow">→</span>
+        <div class="ldiamond seq" style="animation-delay:4s">◇ resolved?</div>
+      </div>
+      <div class="loop-exits">
+        <span class="lexit ok">◇ yes → drop · all clear → full Phase A sweep → Phase B</span>
+        <span class="lexit loop">◇ no &amp; round &lt; 2 → ↺ loop back to Route</span>
+        <span class="lexit esc">◇ no &amp; round = 2 → ⚠ escalate to human</span>
+      </div>
+    </div>
+
+    <h3 style="font-family:var(--disp); font-size:1.5rem; margin:30px 0 16px;">First, partition — not every finding loops</h3>
+    <div class="fclass">
+      <div class="fcard auto">
+        <h4>Implementation-class → loops</h4>
+        <p>Routes to a platform or Backend expert. A concrete fix exists; the agent applies it in its own worktree, QA re-verifies just that finding.</p>
+        <span class="ex">missing test coverage<br/>unhandled error code<br/>interaction state not represented<br/>mock→real mismatch</span>
+      </div>
+      <div class="fcard esc">
+        <h4>Decision-class → escalates at once</h4>
+        <p>Routes to Architect (contract), Spec Analyst (ambiguity), or UX Designer (behavioral). These need a <i>decision</i>, not a fix — auto-looping would invent intent.</p>
+        <span class="ex">spec ambiguity<br/>contract version mismatch<br/>missing / unclear requirement<br/>cross-platform behavioral disagreement</span>
+      </div>
+    </div>
+
+    <h3 style="font-family:var(--disp); font-size:1.5rem; margin:38px 0 16px;">What changes in <code class="inl">verify.md</code></h3>
+    <div class="diff">
+      <div class="col was">
+        <h5>Was — human is the loop</h5>
+        <p><b>verify.md:101</b> — "If any BLOCKER exists, stop here. Route findings and wait for fixes."</p>
+        <p><b>verify.md:206</b> — "After fixes, the user should re-run <code class="inl">/verify</code>."</p>
+        <p style="color:var(--rose)">Every round is a manual round-trip. Nothing closes itself.</p>
+      </div>
+      <div class="col now">
+        <h5>Now — orchestration is the loop</h5>
+        <p><b>Partition</b> findings into implementation vs decision class.</p>
+        <p>Implementation BLOCKERs enter a <b>bounded auto-loop (≤ 2 rounds)</b>: route → fix in worktree → re-verify that finding.</p>
+        <p>Decision-class findings <b>escalate to the human immediately</b>. Survivors after round 2 escalate too.</p>
+        <p style="color:var(--teal)">On clean → one full Phase A sweep → Phase B. Human gate stays at <code class="inl">/propose</code>.</p>
+      </div>
+    </div>
+
+    <h3 style="font-family:var(--disp); font-size:1.5rem; margin:38px 0 16px;">The orchestration shape</h3>
+<pre class="code"><span class="c">// Phase A — parallel per-platform verification</span>
+<span class="c">const</span> reports = <span class="k">await</span> <span class="t">parallel</span>([
+  () => <span class="t">agent</span>(verifyPrompt(<span class="s">'ios'</span>, specs),     { schema: PHASE_A_OUT }),
+  () => <span class="t">agent</span>(verifyPrompt(<span class="s">'android'</span>, specs), { schema: PHASE_A_OUT }),
+  () => <span class="t">agent</span>(verifyPrompt(<span class="s">'backend'</span>, specs), { schema: PHASE_A_OUT }),
+])
+
+<span class="c">// partition — the finding already names its route</span>
+<span class="c">let</span> open    = reports.flatMap(r => r.findings).filter(f => f.severity === <span class="s">'BLOCKER'</span>)
+<span class="c">const</span> decide = open.filter(f => [<span class="s">'Architect'</span>,<span class="s">'Spec Analyst'</span>,<span class="s">'UX Designer'</span>].includes(f.route))
+<span class="c">let</span> remaining = open.filter(f => /Expert$/.test(f.route))   <span class="c">// platform + integration</span>
+
+<span class="k">if</span> (decide.length) escalateToHuman(decide)                  <span class="c">// need a decision, not a fix</span>
+
+<span class="c">// the bounded loop — default (d): 2 rounds, then escalate</span>
+<span class="k">let</span> round = 0
+<span class="k">while</span> (remaining.length && round &lt; 2) {
+  round++
+  <span class="k">await</span> <span class="t">parallel</span>(byPlatform(remaining).map(([platform, findings]) => () =>
+    <span class="t">agent</span>(fixPrompt(platform, findings), { isolation: <span class="s">'worktree'</span> })   <span class="c">// expert fixes; QA never does</span>
+  ))
+  <span class="c">const</span> verdict = <span class="k">await</span> <span class="t">agent</span>(reverifyPrompt(remaining), { schema: VERDICT })  <span class="c">// re-verify ONLY these</span>
+  remaining = remaining.filter(f => !verdict.resolved.includes(f.id))
+}
+
+<span class="k">if</span> (remaining.length) escalateToHuman(remaining)            <span class="c">// survivors → default (e)</span>
+
+<span class="c">// default (f): one full sweep catches regressions, then Phase B</span>
+<span class="k">const</span> sweep = <span class="k">await</span> <span class="t">agent</span>(fullPhaseAPrompt(), { schema: PHASE_A_OUT })
+<span class="k">if</span> (sweep.clean) <span class="t">runPhaseB</span>()</pre>
+
+    <p style="color:var(--paper-dim); font-size:.95rem; margin-top:18px;">
+      Note the symmetry with the barrier fan-out: fixes happen in each platform's <code class="inl">worktree</code> (git Option B), so a verify-loop fix is just re-entering that platform's isolated branch — the two designs compose. QA's "reports only" rule (<code class="inl">qa-verifier.md:5</code>) is untouched: it produces findings and re-verification verdicts; the orchestration routes; the platform expert is the only one who edits code.
+    </p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    NL Native × Anthropic "Building Effective AI Agents" · field notebook<br/>
+    <b>Done:</b> workflow primer · NL Native pattern map · 3 lessons · barrier fan-out design · verify-loop design.<br/>
+    <b>Next:</b> prototype on a toy feature, then the barrier fan-out (L1 + L2).
+  </div>
+</footer>
+
+<script>
+  const views = {
+    continuous: document.getElementById('view-continuous'),
+    barrier:    document.getElementById('view-barrier'),
+  };
+  const btns = document.querySelectorAll('.seg button');
+  let current = 'barrier';
+
+  function run(mode){
+    // reset both
+    views.continuous.classList.remove('running');
+    views.barrier.querySelector('.grid-stage')?.classList.remove('b-running');
+    // hide all
+    views.continuous.style.display = 'none';
+    views.barrier.style.display = 'none';
+    // show active
+    views[mode].style.display = 'block';
+    // force reflow so animation restarts
+    void views[mode].offsetWidth;
+    if (mode === 'continuous'){ views.continuous.classList.add('running'); }
+    else { views.barrier.querySelector('.grid-stage').classList.add('b-running'); }
+    current = mode;
+  }
+
+  btns.forEach(b => b.addEventListener('click', () => {
+    btns.forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    run(b.dataset.mode);
+  }));
+
+  document.getElementById('replay').addEventListener('click', () => run(current));
+
+  // start on barrier when scrolled into view
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting){ run('barrier'); io.disconnect(); } });
+  }, { threshold: 0.35 });
+  io.observe(document.getElementById('diagram'));
+</script>
+</body>
+</html>
