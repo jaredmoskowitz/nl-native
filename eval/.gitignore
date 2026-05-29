@@ -7,3 +7,5 @@ workdir/
 oracle/android/.gradle/
 oracle/android/build/
 oracle/android/src/main/kotlin/notes/*.kt
+
+oracle/backend/slot/*.py
