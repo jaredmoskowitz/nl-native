@@ -98,13 +98,43 @@ Status: PASS | FAIL | PARTIAL
 - FINDING-XXX [BLOCKER|WARNING|INFO] → [routing]: [description]
 ```
 
-**If any BLOCKER findings exist in Phase A, stop here.** Route findings to the appropriate agent and wait for fixes before proceeding to Phase B.
+---
+
+## Phase A.5 — Auto-resolution loop
+
+If Phase A produced BLOCKER findings, do NOT just stop and wait. Close the loop: the QA Verifier still only *reports* (it never edits code — see `agents/qa-verifier.md`), but the orchestration layer routes each finding to the agent that owns the code, that agent fixes it, and QA re-verifies. This was validated empirically (see `docs/superpowers/specs/2026-05-28-plan3-probe-findings.md`: it raised correctness from 0.40 to 1.00 on weak-model output).
+
+**Step 1 — Partition the BLOCKERs by their routing** (the finding already names its route):
+
+- **Implementation-class** → owning platform/Backend expert (the finding routes to "iOS Expert", "Android Expert", "Backend Expert", or an integration finding). These have a concrete fix → they enter the loop.
+- **Decision-class** → Architect (contract), Spec Analyst (spec ambiguity), or UX Designer (behavioral). These need a *decision*, not a fix — auto-looping would invent intent. **Escalate these to the human immediately** and do not loop on them.
+
+**Step 2 — Bounded fix loop (≤ 2 rounds):**
+
+```
+remaining = implementation-class BLOCKERs
+round = 0
+while remaining and round < 2:
+    round += 1
+    for each finding: the owning platform expert fixes it (in its own worktree)
+    QA re-verifies ONLY the findings in `remaining`
+    remaining = findings still failing
+```
+
+- Each round, the owning agent makes the minimal fix the finding calls for. QA re-checks just those findings (not the whole suite) to keep rounds cheap.
+- If `remaining` is empty before round 2, exit early.
+
+**Step 3 — Escalate survivors.** Any implementation BLOCKER still failing after 2 rounds is escalated to the human (alongside any decision-class findings from Step 1). Do not silently loop further.
+
+**Step 4 — Regression sweep.** Once the loop clears (or only WARNINGs/INFO remain), run **one full Phase A pass** to catch regressions introduced by the fixes. Only then proceed to Phase B.
+
+The human gate stays at `/propose`; this loop runs autonomously and surfaces to the human only on surviving blockers. Round count and the per-round findings are logged for the steer/harness-evolution review.
 
 ---
 
 ## Phase B — Cross-platform coherence
 
-Only run Phase B after both platforms have no BLOCKER findings in Phase A.
+Only run Phase B after both platforms have no BLOCKER findings in Phase A (i.e. the Phase A.5 loop cleared them or they were escalated and resolved).
 
 **1. Contract version alignment**
 
@@ -204,9 +234,9 @@ Status: PASS | FAIL | PARTIAL
 Tell the user: "Verification passed. Run `/archive` to close this change."
 
 **BLOCKERs present:**
-- List each BLOCKER finding with its routing
-- Tell the user which agent needs to address each finding
-- After fixes, the user should re-run `/verify`
+- Implementation-class BLOCKERs are auto-resolved by the Phase A.5 loop (route → fix → re-verify, ≤ 2 rounds). Report which findings the loop fixed and in how many rounds.
+- Decision-class BLOCKERs (contract / spec-ambiguity / behavioral) and any implementation BLOCKER that survives 2 rounds are escalated to the human, each with its routing and what it needs.
+- The human acts only on the escalated set; there is no manual re-run for the auto-resolved ones.
 
 **WARNINGs only:**
 Present warnings to the user for acknowledgment. They do not block archiving but should be addressed in a follow-up change.

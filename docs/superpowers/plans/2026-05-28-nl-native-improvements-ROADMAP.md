@@ -25,8 +25,9 @@ Background/why: `docs/workflows-explained.html`. Locked decisions: enforce isola
 | Plan 1b — Android oracle + correctness scorer | ⬜ next |
 | Plan 1c — Backend oracle + correctness scorer | ⬜ |
 | Plan 3 — eval orchestrator (verify loop prototyped here) | ⬜ after 1b/1c |
-| L3 promotion into `verify.md` | ⬜ gated on Plan 3 result |
-| L1+L2 — barrier-synced fan-out | ⬜ after L3 |
+| Plan 3 — base-generation probe + verify-loop calibration | ✅ done — loop raises correctness 0.40→1.00 (haiku gen); L3 gate GREEN |
+| **L3 promotion into `verify.md`** | ✅ **grafted (bounded auto-fix loop in Phase A.5)** |
+| L1+L2 — barrier-synced fan-out | ⬜ remaining — the last roadmap item (own spec+plan+build) |
 
 ---
 
