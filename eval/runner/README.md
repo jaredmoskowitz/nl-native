@@ -5,6 +5,7 @@ Deterministic Python (stdlib-only) tools that turn generated code into the eval'
 ## Tools
 - `score_correctness.py <code-dir>` — drops the code into the iOS oracle slot, runs `swift build`/`swift test`, prints `{built, passed, total, score}` (method-level pass rate; build failure → 0).
 - `score_correctness_android.py <code-dir>` — drops Kotlin `notes` sources into the Android oracle slot, runs `gradle test`, parses the JUnit XML for method-level pass rate (same `built=false` non-gradeable semantics as the iOS scorer).
+- `score_correctness_backend.py <code-dir>` — boots `<code-dir>/server.py`, runs the black-box HTTP oracle, reports method-level pass rate (boot/crash → `built=false`/0).
 - `blind_package.py --out BUNDLE --key KEY.json --seed N label=dir ...` — copies each submission's `*.swift` into anonymized `submission_<i>/` dirs in randomized (seeded) order; writes the private `submission_<i> -> label` key separately. The judge receives only BUNDLE.
 - `aggregate_scores.py --key KEY.json --rubric quality_rubric.json read1.json ...` — medians the judge reads per criterion/composite and de-anonymizes via the key.
 - `quality_rubric.json` — the fixed rubric (criteria, 1–5 scale, mean composite), shared with the Plan 3 judge prompt.

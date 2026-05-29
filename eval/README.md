@@ -62,7 +62,7 @@ ORACLE VALIDATION OK: passes on correct, fails on exactly the seeded defects.
 |---|---|
 | iOS held-out oracle + toy feature spec | ✅ built & validated |
 | Android oracle (JUnit/JVM) + scorer | ✅ built & validated |
-| Backend oracle (black-box HTTP) | ⬜ planned |
+| Backend oracle (black-box HTTP) + scorer | ✅ built & validated |
 | Scoring + judge-support harness (iOS) | ✅ deterministic tooling built; LLM judge call lands in Plan 3 |
 | Eval orchestrator (fan-out → fork → score → report) | ⬜ planned |
 
