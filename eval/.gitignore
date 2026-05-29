@@ -1,0 +1,5 @@
+.build/
+*.xcodeproj
+DerivedData/
+oracle/ios/Sources/NotesFeature/*.swift
+workdir/
