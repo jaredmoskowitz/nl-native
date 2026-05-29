@@ -39,9 +39,10 @@ public final class NotesViewModel {
         await load(targetPage: page, append: false)
     }
 
+    // DEFECT 3: does not reset to page 1 — reloads the current page.
     public func filterByTag(_ tag: String?) async {
         tagFilter = tag
-        await load(targetPage: 1, append: false)
+        await load(targetPage: page, append: false)
     }
 
     public func refresh() async {

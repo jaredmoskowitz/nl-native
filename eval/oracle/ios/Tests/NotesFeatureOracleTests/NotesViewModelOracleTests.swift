@@ -90,6 +90,8 @@ final class NotesViewModelOracleTests: XCTestCase {
 
     func test_filterByTag_resetsAndFilters() async {
         let vm = await signedIn(StubNotesAPI(all: fixtureNotes()))
+        await vm.refresh()       // page 1
+        await vm.loadNextPage()  // advance to page 2 — makes the page-reset assertion load-bearing
         await vm.filterByTag("home")  // ids 1,3,5; page size 2 => page 1 = [1,3]
         XCTAssertEqual(vm.page, 1)
         XCTAssertEqual(vm.notes.map(\.id), ["1", "3"])

@@ -405,6 +405,8 @@ final class NotesViewModelOracleTests: XCTestCase {
 
     func test_filterByTag_resetsAndFilters() async {
         let vm = await signedIn(StubNotesAPI(all: fixtureNotes()))
+        await vm.refresh()       // page 1
+        await vm.loadNextPage()  // advance to page 2 — makes the page-reset assertion load-bearing
         await vm.filterByTag("home")  // ids 1,3,5; page size 2 => page 1 = [1,3]
         XCTAssertEqual(vm.page, 1)
         XCTAssertEqual(vm.notes.map(\.id), ["1", "3"])
@@ -631,7 +633,7 @@ git commit -m "eval: add correct iOS reference impl (oracle passes)"
 
 ## Task 5: Write the broken implementation; oracle must catch it
 
-The broken variant copies the correct one but introduces two real defects: `search` does **not** reset to page 1, and `loadNextPage` does **not** guard on `canLoadMore`. These must fail `test_search_resetsToFirstPage` and `test_loadNextPage_stopsAtLastPage` respectively.
+The broken variant copies the correct one but introduces three real defects: `search` does **not** reset to page 1, `loadNextPage` does **not** guard on `canLoadMore`, and `filterByTag` does **not** reset to page 1. These must fail `test_search_resetsToFirstPage`, `test_loadNextPage_stopsAtLastPage`, and `test_filterByTag_resetsAndFilters` respectively.
 
 **Files:**
 - Create: `eval/oracle-reference/ios/broken/NotesFeature/Models.swift` (identical to correct)
@@ -692,9 +694,10 @@ public final class NotesViewModel {
         await load(targetPage: page, append: false)
     }
 
+    // DEFECT 3: does not reset to page 1 — reloads the current page.
     public func filterByTag(_ tag: String?) async {
         tagFilter = tag
-        await load(targetPage: 1, append: false)
+        await load(targetPage: page, append: false)
     }
 
     public func refresh() async {
@@ -750,7 +753,7 @@ rm -f Sources/NotesFeature/.gitkeep Sources/NotesFeature/*.swift
 cp ../../oracle-reference/ios/broken/NotesFeature/*.swift Sources/NotesFeature/
 swift test
 ```
-Expected: FAILURE — exactly `test_search_resetsToFirstPage` and `test_loadNextPage_stopsAtLastPage` fail; the other 7 pass. This proves the oracle discriminates correct from broken.
+Expected: FAILURE — exactly three methods fail (`test_search_resetsToFirstPage`, `test_loadNextPage_stopsAtLastPage`, `test_filterByTag_resetsAndFilters`); the other 6 pass. This proves the oracle discriminates correct from broken.
 
 - [ ] **Step 4: Clean the slot and commit the broken fixture**
 
@@ -775,32 +778,58 @@ git commit -m "eval: add broken iOS fixture (oracle catches 2 defects)"
 
 ```bash
 #!/usr/bin/env bash
-# Proves the iOS oracle discriminates: passes on the correct impl, fails on the broken one.
+# Proves the iOS oracle discriminates: passes on the correct impl, and on the broken
+# impl fails EXACTLY the seeded-defect tests. Distinguishes "caught the defect" from
+# "did not compile" by building first.
 set -euo pipefail
 
 EVAL_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 PKG="$EVAL_ROOT/oracle/ios"
 SLOT="$PKG/Sources/NotesFeature"
 
-run_variant() {
-  local variant="$1" expect="$2"
+# Always restore the empty slot, even on failure.
+trap 'rm -rf "$SLOT"; mkdir -p "$SLOT"; touch "$SLOT/.gitkeep"' EXIT
+
+load_variant() {
+  local variant="$1"
   rm -rf "$SLOT"; mkdir -p "$SLOT"
   cp "$EVAL_ROOT/oracle-reference/ios/$variant/NotesFeature/"*.swift "$SLOT/"
-  echo "== swift test against '$variant' (expect: $expect) =="
-  if ( cd "$PKG" && swift test ); then result="pass"; else result="fail"; fi
-  echo ">> '$variant' => $result"
-  if [ "$result" != "$expect" ]; then
-    echo "VALIDATION FAILED: '$variant' expected '$expect' but got '$result'"
-    exit 1
-  fi
 }
 
-run_variant correct pass
-run_variant broken  fail
+echo "== correct: expect build OK + all tests pass =="
+load_variant correct
+( cd "$PKG" && swift build ) || { echo "VALIDATION FAILED: correct did not build"; exit 1; }
+( cd "$PKG" && swift test )  || { echo "VALIDATION FAILED: correct did not pass all tests"; exit 1; }
+echo ">> correct => pass"
 
-# Restore the empty slot.
-rm -rf "$SLOT"; mkdir -p "$SLOT"; touch "$SLOT/.gitkeep"
-echo "ORACLE VALIDATION OK: passes on correct, fails on broken."
+echo "== broken: expect build OK + exactly the seeded defects caught =="
+load_variant broken
+( cd "$PKG" && swift build ) || { echo "VALIDATION FAILED: broken did not build (cannot distinguish defect from compile error)"; exit 1; }
+output="$( cd "$PKG" && swift test 2>&1 || true )"
+
+expected_failures=(
+  "test_search_resetsToFirstPage"
+  "test_loadNextPage_stopsAtLastPage"
+  "test_filterByTag_resetsAndFilters"
+)
+failed_lines="$( echo "$output" | grep -E "Test Case .* failed" || true )"
+for t in "${expected_failures[@]}"; do
+  echo "$failed_lines" | grep -q "$t" || {
+    echo "VALIDATION FAILED: expected broken to fail '$t' but it did not"
+    echo "$output"
+    exit 1
+  }
+done
+
+fail_count="$( echo "$failed_lines" | grep -c . || true )"
+if [ "$fail_count" -ne "${#expected_failures[@]}" ]; then
+  echo "VALIDATION FAILED: expected ${#expected_failures[@]} failing test cases, got $fail_count"
+  echo "$output"
+  exit 1
+fi
+echo ">> broken => fail (caught exactly: ${expected_failures[*]})"
+
+echo "ORACLE VALIDATION OK: passes on correct, fails on exactly the seeded defects."
 ```
 
 - [ ] **Step 2: Make it executable and run it**
@@ -812,10 +841,10 @@ eval/scripts/validate-ios-oracle.sh
 ```
 Expected output ends with:
 ```
->> 'correct' => pass
-== swift test against 'broken' (expect: fail) ==
->> 'broken' => fail
-ORACLE VALIDATION OK: passes on correct, fails on broken.
+>> correct => pass
+== broken: expect build OK + exactly the seeded defects caught ==
+>> broken => fail (caught exactly: test_search_resetsToFirstPage test_loadNextPage_stopsAtLastPage test_filterByTag_resetsAndFilters)
+ORACLE VALIDATION OK: passes on correct, fails on exactly the seeded defects.
 ```
 
 - [ ] **Step 3: Commit**
