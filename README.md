@@ -18,7 +18,7 @@
 
 React Native and Flutter use a shared codebase. NL Native uses a shared natural language base.
 
-You describe features in plain English. Seven AI agents turn them into native iOS, Android, and backend code, verified against the spec. Built for [Claude Code](https://claude.ai/code).
+You describe features in plain English. Seven AI agents turn them into native iOS, Android, and backend code, verified against the spec. Slash commands ship for [Claude Code](https://claude.ai/code); [AGENTS.md](./AGENTS.md) and [.cursor/rules/](.cursor/rules/) keep **OpenAI Codex** and **Cursor** on the same harness.
 
 ## Quick Start
 
@@ -31,7 +31,7 @@ mkdir -p your-app/platforms/{ios,android,backend}
 mkdir -p your-app/specs/{core,changes}
 ```
 
-Open Claude Code in your project directory:
+In **Claude Code**, open your project directory and run:
 
 ```
 /propose user-authentication    # spec the feature, get human approval
@@ -41,6 +41,8 @@ Open Claude Code in your project directory:
 /verify                         # spec compliance + cross-platform coherence
 /archive                        # merge into baseline, harness learns from steers
 ```
+
+Using **Cursor**, **Codex**, or another coding agent? Follow the same lifecycle with [AGENTS.md](./AGENTS.md) and mirror the intent of the commands in [`.claude/commands/`](./.claude/commands/).
 
 Backend stack (Supabase, Firebase, Cloudflare Workers, etc.) is configured on your first `/fan-out`. iOS and Android use mock data layers during implementation so they never block on the backend.
 
@@ -106,12 +108,6 @@ Two modes, auto-detected from your input:
 
 Checkpoints (committed at milestones during fan-out) give you clean revert points. If a steer would invalidate most completed work, the harness offers to revert to a checkpoint instead.
 
-## Mock → Real
-
-iOS builds a Swift protocol per API client. Android builds a Kotlin interface. Both get mock conformances with fixture data derived from the API contract.
-
-When the backend finishes, `/connect` runs automatically: smoke-tests every endpoint, generates real implementations, verifies the swap produces identical results. Zero changes to views or view models.
-
 ## Harness evolution
 
 At `/archive` time, the harness reviews your steer log. If you kept correcting the same kind of thing (list rows too dense, wrong navigation pattern), it proposes a permanent rule for your AGENTS.md files. You approve or reject each rule.
@@ -140,7 +136,7 @@ See [`eval/README.md`](eval/README.md) for the evaluation harness.
 ## FAQ
 
 **What LLM does this require?**
-Slash commands target Claude Code. Agent profiles and spec format work with any LLM or agent tool.
+Default slash commands ship for Claude Code; [AGENTS.md](./AGENTS.md) and [.cursor/rules/](.cursor/rules/) map the same harness to Codex and Cursor. Agent profiles and spec formats stay tool-agnostic.
 
 **Can I add more platforms?**
 The harness is platform-count-agnostic. Add a `web-expert.md` or `rn-expert.md` for additional targets.

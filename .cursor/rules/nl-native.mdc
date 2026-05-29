@@ -1,0 +1,52 @@
+---
+description: Rules for the NL Native development harness
+globs: agents/**,schemas/**,.claude/**,example/**
+alwaysApply: false
+---
+
+# NL Native harness rules
+
+This repo is a development harness, not an app. See [AGENTS.md](mdc:AGENTS.md) and [CLAUDE.md](mdc:CLAUDE.md) for full context.
+
+## No application code in this repo
+
+- Never add Swift, Kotlin, or backend application sources at the top level.
+- Never add platform build files (`Package.swift`, `build.gradle`, `Cargo.toml`, etc.).
+- Worked examples in [example/](mdc:example) may contain spec artifacts, but not actual platform code.
+
+## Agent ownership boundaries
+
+- Each agent file in [agents/](mdc:agents) declares what it owns. Do not blur boundaries.
+- Platform agents (iOS, Android, Backend) MUST NOT reference each other or each other's outputs. All cross-cutting decisions route through the Architect.
+- Only the Architect bumps API contract or data model versions. Patch = cosmetic, Minor = additive, Major = breaking.
+- The QA Verifier writes findings into a verification report. It never edits implementation files.
+- The Spec Analyst never writes code and never picks technologies.
+
+## EARS notation
+
+All requirements in feature specs use EARS:
+
+- `When [trigger], the system shall [behavior]`
+- `While [state], the system shall [behavior]`
+- `If [condition], then the system shall [behavior]`
+- `The system shall [behavior]` (ubiquitous)
+
+Don't write requirements as free-form prose.
+
+## Spec versioning
+
+- API contracts and data models in [schemas/](mdc:schemas) carry a semver version.
+- Platform task lists declare contract dependencies in frontmatter. If a contract changes mid-implementation, dependent agents halt, re-read, reassess, and resume.
+
+## Two-phase verification
+
+- Phase A: per-platform spec compliance (parallel across iOS, Android, Backend).
+- Phase B: cross-platform coherence + integration. Only runs if Phase A passes with no BLOCKERs.
+- BLOCKER findings halt progress. WARNING findings are acknowledged but don't block.
+
+## When you change something
+
+- Touched an agent's role summary? Update [README.md](mdc:README.md).
+- Touched an agent's key rule? Update [CLAUDE.md](mdc:CLAUDE.md) and [AGENTS.md](mdc:AGENTS.md).
+- Added a slash command? Update the command tables in README, CLAUDE, and AGENTS.
+- Added a schema? Update the schema lists in all three docs.
