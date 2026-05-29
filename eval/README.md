@@ -63,7 +63,7 @@ ORACLE VALIDATION OK: passes on correct, fails on exactly the seeded defects.
 | iOS held-out oracle + toy feature spec | ✅ built & validated |
 | Android oracle (JUnit / JVM) | ⬜ planned |
 | Backend oracle (black-box HTTP) | ⬜ planned |
-| Scoring + blind judge harness | ⬜ planned |
+| Scoring + judge-support harness (iOS) | ✅ deterministic tooling built; LLM judge call lands in Plan 3 |
 | Eval orchestrator (fan-out → fork → score → report) | ⬜ planned |
 
 The verify loop is prototyped *inside* the orchestrator as the treatment/ceiling strategy and only promoted into the real `/verify` if it wins here.
