@@ -20,6 +20,8 @@ import shutil
 def package(entries, out_dir, key_file, seed):
     order = list(range(len(entries)))
     random.Random(seed).shuffle(order)
+    if os.path.isdir(out_dir):
+        shutil.rmtree(out_dir)
     os.makedirs(out_dir, exist_ok=True)
     key = {}
     for sub_index, orig_index in enumerate(order):

@@ -53,7 +53,15 @@ def score(src_dir):
         passed = results.count("passed")
         failed = results.count("failed")
         total = passed + failed
-        value = (passed / total) if total else 0.0
+        if total == 0:
+            # The library compiled (swift build passed) but zero test cases ran, which
+            # means the held-out test target failed to compile against this submission
+            # (e.g. a renamed or missing public symbol the oracle references). The oracle
+            # could not measure it, so report it as non-gradeable (built=False, score 0) —
+            # NOT an ambiguous clean "0 of 0". 'built' thus means "the oracle ran".
+            return {"platform": "ios", "built": False, "passed": 0, "total": 0,
+                    "score": 0.0, "summary": "tests failed to compile against submission"}
+        value = passed / total
         return {"platform": "ios", "built": True, "passed": passed,
                 "total": total, "score": value, "summary": f"{passed}/{total} methods passed"}
     finally:

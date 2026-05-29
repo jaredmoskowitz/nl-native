@@ -14,6 +14,9 @@ import statistics
 
 
 def aggregate(reads, key, criteria):
+    # Note: 'composite' is medianed directly across reads (intentional — it is the
+    # judge's own composite per read), so it may differ from the mean of the reported
+    # per-criterion medians. That is expected, not a bug.
     fields = list(criteria) + ["composite"]
     result = {}
     for sub_id, label in key.items():

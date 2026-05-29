@@ -128,6 +128,25 @@ class TestScoreCorrectness(unittest.TestCase):
             self.assertFalse(r["built"])
             self.assertEqual(r["score"], 0.0)
 
+    def test_library_compiles_but_tests_dont_is_zero(self):
+        # A submission that compiles as a library but renames a public symbol the
+        # held-out tests reference: `swift build` passes, `swift test` fails to compile,
+        # so zero test cases run. Must be reported non-gradeable (built=False, score 0).
+        import shutil
+        with tempfile.TemporaryDirectory() as d:
+            for name in os.listdir(CORRECT):
+                if name.endswith(".swift"):
+                    shutil.copy(os.path.join(CORRECT, name), os.path.join(d, name))
+            vm = os.path.join(d, "NotesViewModel.swift")
+            with open(vm) as fh:
+                src = fh.read()
+            with open(vm, "w") as fh:
+                fh.write(src.replace("canLoadMore", "canLoadMoreX"))
+            r = run(d)
+            self.assertEqual(r["score"], 0.0)
+            self.assertFalse(r["built"])
+            self.assertEqual(r["total"], 0)
+
 
 if __name__ == "__main__":
     unittest.main()
@@ -200,7 +219,15 @@ def score(src_dir):
         passed = results.count("passed")
         failed = results.count("failed")
         total = passed + failed
-        value = (passed / total) if total else 0.0
+        if total == 0:
+            # The library compiled (swift build passed) but zero test cases ran, which
+            # means the held-out test target failed to compile against this submission
+            # (e.g. a renamed or missing public symbol the oracle references). The oracle
+            # could not measure it, so report it as non-gradeable (built=False, score 0) —
+            # NOT an ambiguous clean "0 of 0". 'built' thus means "the oracle ran".
+            return {"platform": "ios", "built": False, "passed": 0, "total": 0,
+                    "score": 0.0, "summary": "tests failed to compile against submission"}
+        value = passed / total
         return {"platform": "ios", "built": True, "passed": passed,
                 "total": total, "score": value, "summary": f"{passed}/{total} methods passed"}
     finally:
@@ -226,7 +253,7 @@ cd /Users/jaredmoskowitz/workspace/nl-native
 python3 -m unittest discover -s eval/runner/tests -p "test_score_correctness.py" 2>&1 | tail -8
 git status --short eval/oracle/ios/Sources/NotesFeature
 ```
-Expected: `Ran 3 tests ... OK`. The slot status shows no tracked change (only `.gitkeep`, restored by the scorer).
+Expected: `Ran 4 tests ... OK`. The slot status shows no tracked change (only `.gitkeep`, restored by the scorer).
 
 - [ ] **Step 5: Commit**
 
@@ -365,6 +392,8 @@ import shutil
 def package(entries, out_dir, key_file, seed):
     order = list(range(len(entries)))
     random.Random(seed).shuffle(order)
+    if os.path.isdir(out_dir):
+        shutil.rmtree(out_dir)
     os.makedirs(out_dir, exist_ok=True)
     key = {}
     for sub_index, orig_index in enumerate(order):
@@ -511,6 +540,9 @@ import statistics
 
 
 def aggregate(reads, key, criteria):
+    # Note: 'composite' is medianed directly across reads (intentional — it is the
+    # judge's own composite per read), so it may differ from the mean of the reported
+    # per-criterion medians. That is expected, not a bug.
     fields = list(criteria) + ["composite"]
     result = {}
     for sub_id, label in key.items():
@@ -651,7 +683,7 @@ Run:
 cd /Users/jaredmoskowitz/workspace/nl-native
 python3 -m unittest discover -s eval/runner/tests -p "test_*.py" 2>&1 | tail -8
 ```
-Expected: all tests pass — `Ran 9 tests ... OK` (3 correctness + 4 packager + 1 aggregator + 1 smoke).
+Expected: all tests pass — `Ran 10 tests ... OK` (4 correctness + 4 packager + 1 aggregator + 1 smoke).
 
 - [ ] **Step 3: Commit**
 
@@ -709,7 +741,7 @@ git commit -m "eval: document runner tooling + update status"
 
 ## Done criteria
 
-- [ ] `python3 -m unittest discover -s eval/runner/tests -p "test_*.py" -t .` is green (9 tests).
+- [ ] `python3 -m unittest discover -s eval/runner/tests -p "test_*.py" -t .` is green (10 tests).
 - [ ] `score_correctness.py` returns 1.0 for the correct reference, 6/9 for the broken fixture, 0.0 for a non-building dir, and restores the oracle slot to only `.gitkeep`.
 - [ ] `blind_package.py` produces label-free `submission_<i>` dirs + a separate key, deterministic per seed.
 - [ ] `aggregate_scores.py` medians reads and de-anonymizes via the key.
