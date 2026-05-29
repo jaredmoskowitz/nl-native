@@ -1,0 +1,6 @@
+{
+  "criteria": ["idiomatic", "error_handling", "structure", "clarity"],
+  "scale": { "min": 1, "max": 5 },
+  "composite": "mean",
+  "notes": "Each criterion is scored 1-5 by an independent blind judge that sees only bare source code (no condition labels, git history, or loop logs). Composite is the mean of the four criteria. This rubric is shared by the aggregator (Plan 2) and the judge prompt (Plan 3)."
+}
