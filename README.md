@@ -132,7 +132,10 @@ schemas/          Spec templates (features, contracts, data models, interactions
 .claude/commands/ 9 slash commands
 .claude/skills/   Verification loops (iOS simulator, Android emulator)
 example/          Worked example: Notes app feature
+eval/             Evaluation harness — see eval/README.md
 ```
+
+See [`eval/README.md`](eval/README.md) for the evaluation harness.
 
 ## FAQ
 
