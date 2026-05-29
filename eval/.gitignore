@@ -3,3 +3,7 @@
 DerivedData/
 oracle/ios/Sources/NotesFeature/*.swift
 workdir/
+
+oracle/android/.gradle/
+oracle/android/build/
+oracle/android/src/main/kotlin/notes/*.kt
