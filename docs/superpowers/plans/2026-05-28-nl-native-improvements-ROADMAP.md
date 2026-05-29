@@ -21,10 +21,10 @@ Background/why: `docs/workflows-explained.html`. Locked decisions: enforce isola
 | Lessons + locked decisions + explainer page | ✅ done (on main) |
 | Eval design spec | ✅ done (on main) |
 | **Plan 1 — toy feature + iOS held-out oracle** | ✅ **built, validated, merged to main** |
-| Plan 1b — Android oracle | ⬜ next |
-| Plan 1c — Backend oracle | ⬜ |
-| Plan 2 — scoring + blind judge harness | ⬜ |
-| Plan 3 — eval orchestrator (verify loop prototyped here) | ⬜ |
+| **Plan 2 — scoring + judge-support harness (iOS)** | ✅ **built, validated, merged to main** |
+| Plan 1b — Android oracle + correctness scorer | ⬜ next |
+| Plan 1c — Backend oracle + correctness scorer | ⬜ |
+| Plan 3 — eval orchestrator (verify loop prototyped here) | ⬜ after 1b/1c |
 | L3 promotion into `verify.md` | ⬜ gated on Plan 3 result |
 | L1+L2 — barrier-synced fan-out | ⬜ after L3 |
 
@@ -33,9 +33,9 @@ Background/why: `docs/workflows-explained.html`. Locked decisions: enforce isola
 ## Track A — Build the eval ruler
 
 - [x] **Plan 1 — Toy feature + iOS oracle.** Notes+tags+search+pagination+auth NL Native specs; iOS logic-layer XCTest oracle (`swift test`, no simulator); correct + broken fixtures; `validate-ios-oracle.sh` proving it passes on correct / fails on exactly the seeded defects. *(Done.)*
-- [ ] **Plan 1b — Android oracle.** Mirror Plan 1: JUnit on the JVM (no emulator), targeting the same pinned interface ported to Kotlin. Deliver: Android oracle + correct/broken fixtures + `validate-android-oracle.sh`.
-- [ ] **Plan 1c — Backend oracle.** Black-box HTTP tests against the running server (implementation-agnostic). Pick a concrete backend stack for the eval. Deliver: backend oracle + correct/broken fixtures + `validate-backend-oracle.sh`.
-- [ ] **Plan 2 — Scoring + blind judge harness.** Input: a directory of generated code. Output two numbers per platform: **correctness** (run the held-out oracle → pass rate; compile/build failure → 0) and **quality** (blind, randomized-order, median-of-3 judge, independent of the QA Verifier prompt).
+- [x] **Plan 2 — Scoring + judge-support harness (iOS).** `eval/runner/` Python stdlib tooling: iOS correctness scorer (method-level oracle pass rate; lib-compiles-but-tests-don't → non-gradeable 0), blind packager, median aggregator, fixed rubric. The shared packager/aggregator/rubric serve all platforms; the LLM judge call is deferred to Plan 3. *(Done, merged to main.)*
+- [ ] **Plan 1b — Android oracle + correctness scorer.** Mirror Plan 1: JUnit on the JVM via Gradle (no emulator), targeting the pinned interface ported to Kotlin; correct + broken fixtures + `validate-android-oracle.sh`. Plus an Android correctness scorer (`gradle test` parse) reusing the shared packager/aggregator.
+- [ ] **Plan 1c — Backend oracle + correctness scorer.** Black-box HTTP tests against the running server (implementation-agnostic). Pick a concrete backend stack for the eval. Correct + broken fixtures + `validate-backend-oracle.sh` + a backend correctness scorer.
 - [ ] **Plan 3 — Eval orchestrator.** The Workflow-tool runner: run `/fan-out` **once** → fork three worktrees → apply the three verify **strategies** (baseline / treatment ≤2-round loop / unbounded-loop ceiling) → score via Plan 2 → aggregate distributions + per-round trajectory + report. N=5 repeats, paired. **This is where the verify loop is first prototyped and measured.**
 
 ## Track B — Harness improvements (gated on the ruler)
@@ -56,18 +56,18 @@ L1+L2 (reuses the ruler) ──────────────┘ (can foll
 ```
 Plan 2 needs ≥1 oracle. Plan 3 needs Plan 2 + the oracle(s) it scores. L3 promotion needs a Plan 3 result.
 
-## Recommended sequence — thin iOS slice first
+## Recommended sequence — all oracles first, then one comprehensive run
 
-Fastest path to a real, decision-grade number, and it leads with the priority platform (iOS):
+Decided May 28: the expensive, slow, nondeterministic part is the **Plan 3 live run** (fan-out + verify-loop + judge). Oracle-building is cheap, deterministic, and needed regardless — so build all three oracles first and do the costly Plan 3 run **once across all platforms**, rather than running iOS now and re-running later.
 
-1. **Plan 2 (iOS-only)** — scoring + judge wired to the existing iOS oracle.
-2. **Plan 3 (iOS-only)** — orchestrator end-to-end on iOS → **first verify-loop measurement.**
-3. **Decision gate:** does treatment beat baseline? Is 2 rounds enough (treatment vs ceiling)?
-4. **Broaden:** Plan 1b (Android), Plan 1c (Backend), extend Plan 2/3 to all platforms.
+1. **Plan 1b (Android)** — oracle + correctness scorer (JUnit/JVM via Gradle, no emulator). ← next
+2. **Plan 1c (Backend)** — oracle + correctness scorer (black-box HTTP).
+3. **Plan 3 (all-platform)** — orchestrator. **First step is a cheap N=1 calibration dry-run** to validate the pipeline *and* confirm generation headroom (code good enough to compile, flawed enough to fix) before the full N=5 run. De-risking kept, "big run done once" honored.
+4. **Decision gate:** does treatment beat baseline? Is 2 rounds enough (treatment vs ceiling)?
 5. **L3 promotion** into `verify.md` (if it won).
-6. **L1+L2** barrier-synced fan-out, measured on the broadened ruler.
+6. **L1+L2** barrier-synced fan-out, measured on the all-platform ruler.
 
-*Alternative — breadth-first:* build Plan 1b + 1c before Plan 2/3 if you want all-platform correctness from the very first measurement. Trade-off: slower to the first number.
+*Why not thin-iOS-slice-first:* it reaches a first number faster but forces re-running the expensive Plan 3 orchestration again for Android/Backend later. The calibration dry-run in step 3 recovers the de-risking without that duplication.
 
 ## Decision gates
 
