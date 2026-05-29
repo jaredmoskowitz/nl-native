@@ -45,15 +45,22 @@ def _wait_ready(port, proc, timeout=8.0):
 
 
 def _run_oracle(base_url):
+    prev = os.environ.get("NOTES_BASE_URL")
     os.environ["NOTES_BASE_URL"] = base_url
-    suite = unittest.TestLoader().discover(ORACLE_TESTS, pattern="test_notes_api.py")
-    with open(os.devnull, "w") as devnull:
-        result = unittest.TextTestRunner(stream=devnull, verbosity=0).run(suite)
-    failed_names = sorted(
-        tc._testMethodName for tc, _ in (result.failures + result.errors)
-    )
-    passed = result.testsRun - len(result.failures) - len(result.errors)
-    return passed, result.testsRun, failed_names
+    try:
+        suite = unittest.TestLoader().discover(ORACLE_TESTS, pattern="test_notes_api.py")
+        with open(os.devnull, "w") as devnull:
+            result = unittest.TextTestRunner(stream=devnull, verbosity=0).run(suite)
+        failed_names = sorted(
+            tc._testMethodName for tc, _ in (result.failures + result.errors)
+        )
+        passed = result.testsRun - len(result.failures) - len(result.errors)
+        return passed, result.testsRun, failed_names
+    finally:
+        if prev is None:
+            os.environ.pop("NOTES_BASE_URL", None)
+        else:
+            os.environ["NOTES_BASE_URL"] = prev
 
 
 def score(src_dir):
@@ -61,22 +68,24 @@ def score(src_dir):
     if not os.path.isfile(server):
         return {"platform": "backend", "built": False, "passed": 0, "total": 0,
                 "score": 0.0, "failures": [], "summary": "no server.py"}
-    port = _free_port()
-    proc = subprocess.Popen(["python3", server, str(port)],
-                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    try:
-        if not _wait_ready(port, proc):
-            return {"platform": "backend", "built": False, "passed": 0, "total": 0,
-                    "score": 0.0, "failures": [], "summary": "server failed to boot"}
-        passed, total, failures = _run_oracle(f"http://127.0.0.1:{port}")
-        value = (passed / total) if total else 0.0
-        return {"platform": "backend", "built": True, "passed": passed, "total": total,
-                "score": value, "failures": failures,
-                "summary": f"{passed}/{total} oracle tests passed"}
-    finally:
-        proc.terminate()
-        with contextlib.suppress(Exception):
-            proc.wait(timeout=5)
+    for _attempt in range(3):
+        port = _free_port()
+        proc = subprocess.Popen(["python3", server, str(port)],
+                                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        try:
+            if _wait_ready(port, proc):
+                passed, total, failures = _run_oracle(f"http://127.0.0.1:{port}")
+                value = (passed / total) if total else 0.0
+                return {"platform": "backend", "built": True, "passed": passed,
+                        "total": total, "score": value, "failures": failures,
+                        "summary": f"{passed}/{total} oracle tests passed"}
+        finally:
+            proc.terminate()
+            with contextlib.suppress(Exception):
+                proc.wait(timeout=5)
+        # boot did not become ready (genuine crash, or a transient port race) — retry
+    return {"platform": "backend", "built": False, "passed": 0, "total": 0,
+            "score": 0.0, "failures": [], "summary": "server failed to boot"}
 
 
 def main():
