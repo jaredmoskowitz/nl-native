@@ -41,8 +41,11 @@ def count_results():
     passed = failed = 0
     for path in glob.glob(os.path.join(RESULTS, "*.xml")):
         for tc in ET.parse(path).getroot().iter("testcase"):
-            if any(child.tag in ("failure", "error") for child in tc):
+            kinds = [child.tag for child in tc]
+            if any(k in ("failure", "error") for k in kinds):
                 failed += 1
+            elif "skipped" in kinds:
+                continue  # skipped tests count as neither passed nor failed
             else:
                 passed += 1
     return passed, failed

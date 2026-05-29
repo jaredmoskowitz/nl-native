@@ -796,6 +796,25 @@ class TestScoreCorrectnessAndroid(unittest.TestCase):
             self.assertFalse(r["built"])
             self.assertEqual(r["score"], 0.0)
 
+    def test_library_compiles_but_tests_dont_is_zero(self):
+        # A submission that renames a public symbol the held-out tests reference: it
+        # compiles in isolation, but `gradle test` fails to compile the test target
+        # against it -> zero test cases -> non-gradeable (built=False, score 0).
+        import shutil
+        with tempfile.TemporaryDirectory() as d:
+            for name in os.listdir(CORRECT):
+                if name.endswith(".kt"):
+                    shutil.copy(os.path.join(CORRECT, name), os.path.join(d, name))
+            vm = os.path.join(d, "NotesViewModel.kt")
+            with open(vm) as fh:
+                src = fh.read()
+            with open(vm, "w") as fh:
+                fh.write(src.replace("canLoadMore", "canLoadMoreX"))
+            r = run(d)
+            self.assertEqual(r["score"], 0.0)
+            self.assertFalse(r["built"])
+            self.assertEqual(r["total"], 0)
+
 
 if __name__ == "__main__":
     unittest.main()
@@ -855,8 +874,11 @@ def count_results():
     passed = failed = 0
     for path in glob.glob(os.path.join(RESULTS, "*.xml")):
         for tc in ET.parse(path).getroot().iter("testcase"):
-            if any(child.tag in ("failure", "error") for child in tc):
+            kinds = [child.tag for child in tc]
+            if any(k in ("failure", "error") for k in kinds):
                 failed += 1
+            elif "skipped" in kinds:
+                continue  # skipped tests count as neither passed nor failed
             else:
                 passed += 1
     return passed, failed
@@ -901,7 +923,7 @@ cd /Users/jaredmoskowitz/workspace/nl-native
 python3 -m unittest discover -s eval/runner/tests -p "test_score_correctness_android.py" 2>&1 | tail -8
 git status --short eval/oracle/android/src/main/kotlin/notes
 ```
-Expected: `Ran 3 tests ... OK` (gradle runs make this slow, ~30–60s). Slot shows no tracked change.
+Expected: `Ran 4 tests ... OK` (gradle runs make this slow, ~30–60s). Slot shows no tracked change.
 
 - [ ] **Step 5: Commit**
 
@@ -943,7 +965,7 @@ git commit -m "eval: document Android oracle + scorer; update status"
 ## Done criteria
 
 - [ ] `eval/scripts/validate-android-oracle.sh` ends with `ANDROID ORACLE VALIDATION OK`.
-- [ ] `python3 -m unittest discover -s eval/runner/tests -p "test_score_correctness_android.py"` is green (correct → 1.0, broken → 6/9, empty → 0.0).
+- [ ] `python3 -m unittest discover -s eval/runner/tests -p "test_score_correctness_android.py"` is green (correct → 1.0, broken → 6/9, empty → 0.0, renamed-symbol → non-gradeable 0).
 - [ ] Oracle binds only to the public `notes` interface; slot restored to only `.gitkeep`.
 - [ ] Working Gradle/Kotlin/JUnit versions recorded in `build.gradle.kts`.
 - [ ] All committed on branch `nl-native-android-oracle`.
